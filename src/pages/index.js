@@ -1,65 +1,36 @@
 /** @jsx jsx */
 import { jsx, Global } from '@emotion/core'
-import { ThemeProvider } from 'emotion-theming'
+import { Fragment } from 'react'
 
 import { Heading, Spacer, XStack, YStack } from '../components/ui-elements'
 import { Header } from '../components/header'
 import { LastPlayed } from '../components/last-played'
-
-const colors = {
-  primary: '#7de7aa',
-}
-
-const appTheme = {
-  fontFamily: 'system-ui, sans-serif',
-  colors: {
-    body: {
-      color: '#fff',
-    },
-    heading: {
-      color: colors.primary,
-    },
-    anchor: {
-      color: colors.primary,
-    },
-    background: '#131721',
-    foreground: colors.primary,
-  },
-  fontSizes: {
-    xs: 11,
-    sm: 14,
-    md: 20,
-    lg: 40,
-    xl: 72,
-  },
-  fontWeights: {
-    bold: 600,
-  },
-}
+import { theme, themeStyles } from '../theme'
 
 export default () => (
-  <ThemeProvider theme={appTheme}>
+  <Fragment>
     <Global
-      styles={theme => ({
+      styles={{
+        ':root': themeStyles,
         '*': {
           boxSizing: 'border-box',
         },
         html: {
-          fontFamily: theme.fontFamily,
-          backgroundColor: theme.colors.background,
+          backgroundColor: 'var(--colors-background)',
         },
         body: {
           margin: 0,
-          ...theme.colors.body,
+          fontFamily: 'var(--fonts-body)',
+          color: 'var(--colors-body)',
         },
         a: {
-          ...theme.colors.anchor,
+          color: 'var(--colors-anchor)',
         },
         'h1,h2,h3,h4,h5,h6': {
           margin: 0,
-          ...theme.colors.heading,
+          color: 'var(--colors-heading)',
         },
-      })}
+      }}
     />
     <XStack columns={['1fr', 'minmax(0, 960px)', '1fr']}>
       <Spacer />
@@ -83,7 +54,7 @@ export default () => (
         <Spacer />
 
         <YStack>
-          <Heading level={2} size="xl" color="#fff">
+          <Heading level={2} size="xl">
             Travis Arnold
           </Heading>
           <Heading level={3} size="lg">
@@ -98,5 +69,5 @@ export default () => (
 
       <Spacer />
     </XStack>
-  </ThemeProvider>
+  </Fragment>
 )

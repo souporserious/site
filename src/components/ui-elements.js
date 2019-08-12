@@ -221,27 +221,33 @@ const levelSizeMap = {
   5: 'xs',
 }
 
-export function Heading({ level, size, color, ...props }) {
+export function Heading({ level, size, color, weight, ...props }) {
+  const headingSize = size || levelSizeMap[level]
   return jsx(`h${level}`, {
-    css: theme => ({
-      fontSize: theme.fontSizes[size || levelSizeMap[level]],
-      color: theme.colors[color] || color,
-    }),
+    css: {
+      fontSize: headingSize ? `var(--fontSizes-${headingSize})` : undefined,
+      fontWeight: weight ? `var(--fontWeights-${weight})` : undefined,
+      color: color ? `var(--colors-${color})` : undefined,
+    },
     ...props,
   })
 }
 
 export function Text({ size = 'md', color, weight, ...props }) {
   return jsx(`span`, {
-    css: theme => ({
-      fontSize: theme.fontSizes[size] || size,
-      fontWeight: theme.fontWeights[weight] || weight,
-      color: theme.colors[color] || color,
-    }),
+    css: {
+      fontSize: size ? `var(--fontSizes-${size})` : undefined,
+      fontWeight: weight ? `var(--fontWeights-${weight})` : undefined,
+      color: color ? `var(--colors-${color})` : undefined,
+    },
     ...props,
   })
 }
 
 export function Image({ source, description, ...props }) {
-  return jsx(`img`, { src: source, alt: description, ...props })
+  return jsx(`img`, {
+    src: source,
+    alt: description,
+    ...props,
+  })
 }

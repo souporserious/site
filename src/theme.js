@@ -1,3 +1,5 @@
+import { css } from '@emotion/core'
+
 export const breakpoints = {
   xs: `@media (min-width: 480px)`,
   sm: `@media (min-width: 600px)`,
@@ -25,7 +27,7 @@ export const theme = [
   [
     breakpoints.md,
     {
-      fontSizes: { xs: 11, sm: 14, md: 16, lg: 24, xl: 48 },
+      fontSizes: { md: 20, lg: 40, xl: 72 },
     },
   ],
   [
@@ -40,3 +42,30 @@ export const theme = [
     },
   ],
 ]
+
+function parseThemeValue(themeValue) {
+  let properties = {}
+  for (let themeValueKey in themeValue) {
+    const props = themeValue[themeValueKey]
+    for (let propKey in props) {
+      const propValue = props[propKey]
+      properties = {
+        ...properties,
+        [`--${themeValueKey}-${propKey}`]:
+          typeof propValue === 'number' ? `${propValue}px` : propValue,
+      }
+    }
+  }
+  return properties
+}
+
+export function getThemeStyles(theme) {
+  const styles = {}
+  for (let themeBreakpoint in theme) {
+    const [query, value] = theme[themeBreakpoint]
+    styles[query] = parseThemeValue(value)
+  }
+  return css(styles)
+}
+
+export const themeStyles = getThemeStyles(theme)
