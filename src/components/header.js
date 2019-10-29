@@ -1,30 +1,26 @@
 /** @jsx jsx */
-import { jsx } from '@emotion/core'
+import { jsx } from './jsx'
 
 import { Logo } from './logo'
-import { Spacer, XStack } from './ui-elements'
+import { HeadingUppercase, Spacer, XStack } from './ui-elements'
 
 export function Header(props) {
   return (
-    <XStack
-      alignment="center"
-      columns={['auto', 'minmax(64px, 1fr)', 'auto']}
-      {...props}
-    >
-      <XStack alignment="center" columns={['40px', '1fr']} spacing={8}>
+    <XStack alignment="center" columns="auto minmax(64px, 1fr) auto" {...props}>
+      <XStack alignment="center" columns="40px 1fr" spacing={8}>
         <Logo />
-        <h1
-          css={{
-            fontSize: 20,
-            textTransform: 'uppercase',
-            letterSpacing: '0.20em',
-            '@media (max-width: 640px)': {
-              display: 'none',
+        <HeadingUppercase
+          level={1}
+          size="sm"
+          hidden={true}
+          states={{
+            '@media (min-width: 544px)': {
+              hidden: false,
             },
           }}
         >
           souporserious
-        </h1>
+        </HeadingUppercase>
       </XStack>
 
       <Spacer />

@@ -1,11 +1,12 @@
 /** @jsx jsx */
-import { jsx, Global } from '@emotion/core'
+import { jsx } from '../components/jsx'
+import { Global } from '@emotion/core'
 import { Fragment } from 'react'
 
 import { Heading, Spacer, XStack, YStack } from '../components/ui-elements'
 import { Header } from '../components/header'
 import { LastPlayed } from '../components/last-played'
-import { theme, themeStyles } from '../theme'
+import { breakpoints, themeStyles, getProperty } from '../theme'
 
 export default () => (
   <Fragment>
@@ -16,19 +17,19 @@ export default () => (
           boxSizing: 'border-box',
         },
         html: {
-          backgroundColor: 'var(--colors-background)',
+          backgroundColor: getProperty('colors', 'background'),
         },
         body: {
           margin: 0,
-          fontFamily: 'var(--fonts-body)',
-          color: 'var(--colors-body)',
+          fontFamily: getProperty('fonts', 'body'),
+          color: getProperty('colors', 'body'),
         },
         a: {
-          color: 'var(--colors-anchor)',
+          color: getProperty('colors', 'anchor'),
         },
         'h1,h2,h3,h4,h5,h6': {
           margin: 0,
-          color: 'var(--colors-heading)',
+          color: getProperty('colors', 'heading'),
         },
       }}
     />
@@ -40,21 +41,20 @@ export default () => (
         width="100%"
         maxWidth={960}
         minHeight="100vh"
-        padding={32}
-        rows={[
-          'auto',
-          'minmax(54px, 1fr)',
-          'auto',
-          'minmax(96px, 2fr)',
-          'auto',
-        ]}
+        padding={16}
+        rows="auto minmax(54px, 1fr) auto minmax(96px, 2fr) auto"
+        states={{
+          [breakpoints.sm]: {
+            padding: 32,
+          },
+        }}
       >
         <Header />
 
         <Spacer />
 
         <YStack>
-          <Heading level={2} size="xl">
+          <Heading level={2} size="xl" color="main-heading">
             Travis Arnold
           </Heading>
           <Heading level={3} size="lg">

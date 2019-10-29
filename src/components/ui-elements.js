@@ -1,6 +1,8 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/core'
 
+import { getProperty } from '../theme'
+
 function getTemplateValue(value) {
   return value
     ? value.constructor === Array
@@ -221,24 +223,38 @@ const levelSizeMap = {
   5: 'xs',
 }
 
-export function Heading({ level, size, color, weight, ...props }) {
+export function Heading({ level, size = 'md', color, weight, ...props }) {
   const headingSize = size || levelSizeMap[level]
   return jsx(`h${level}`, {
     css: {
-      fontSize: headingSize ? `var(--fontSizes-${headingSize})` : undefined,
-      fontWeight: weight ? `var(--fontWeights-${weight})` : undefined,
-      color: color ? `var(--colors-${color})` : undefined,
+      fontSize: getProperty('fontSizes', headingSize),
+      fontWeight: getProperty('fontWeights', weight),
+      color: getProperty('colors', color),
     },
     ...props,
   })
 }
 
+export function HeadingUppercase({ children, ...props }) {
+  return (
+    <Heading
+      css={{
+        textTransform: 'uppercase',
+        letterSpacing: '0.20em',
+      }}
+      {...props}
+    >
+      {children}
+    </Heading>
+  )
+}
+
 export function Text({ size = 'md', color, weight, ...props }) {
   return jsx(`span`, {
     css: {
-      fontSize: size ? `var(--fontSizes-${size})` : undefined,
-      fontWeight: weight ? `var(--fontWeights-${weight})` : undefined,
-      color: color ? `var(--colors-${color})` : undefined,
+      fontSize: getProperty('fontSizes', size),
+      fontWeight: getProperty('fontWeights', weight),
+      color: getProperty('colors', color),
     },
     ...props,
   })
