@@ -9,7 +9,7 @@ export function LastPlayed() {
   useEffect(() => {
     ;(async function() {
       const response = await fetch(
-        'http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&limit=1&user=ftntravis&api_key=ae84f730280e5f3cf99835cd7c1ad77b&format=json'
+        'https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&limit=1&user=ftntravis&api_key=ae84f730280e5f3cf99835cd7c1ad77b&format=json'
       )
       const data = await response.json()
       const lastTrack = data.recenttracks.track[0]
