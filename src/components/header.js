@@ -6,7 +6,12 @@ import { HeadingUppercase, Spacer, XStack } from './ui-elements'
 
 export function Header(props) {
   return (
-    <XStack alignment="center" columns="auto minmax(64px, 1fr) auto" {...props}>
+    <XStack
+      as="header"
+      alignment="center"
+      columns="auto minmax(64px, 1fr) auto"
+      {...props}
+    >
       <XStack alignment="center" columns="40px 1fr" spacing={8}>
         <Logo />
         <HeadingUppercase
