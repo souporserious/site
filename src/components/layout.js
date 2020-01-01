@@ -1,122 +1,101 @@
 /** @jsx jsx */
-import { jsx } from '../components/jsx'
-import { Global } from '@emotion/core'
+import { Global, jsx } from '@emotion/core'
 import { Fragment } from 'react'
-import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live'
-import Highlight, { defaultProps } from 'prism-react-renderer'
-import { MDXProvider } from '@mdx-js/react'
+import { Link } from 'gatsby'
 
-import { Spacer, XStack, YStack } from '../components/ui-elements'
-import { Header } from '../components/header'
-import { breakpoints, themeStyles, getProperty } from '../theme'
+import { Head } from './Head'
 
-import '../css/prism-theme.css'
-
-const EDITOR_THEME = {
-  plain: {},
-  styles: [],
-}
-
-const LiveCode = props => (
-  <LiveProvider
-    code={props.children.props.children.trim()}
-    theme={EDITOR_THEME}
-    mountStylesheet={false}
-  >
-    <LiveEditor
-      style={{
-        fontFamily: `Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace`,
-        fontSize: 16,
-        backgroundColor: 'rgb(20, 26, 31)',
-        color: 'rgb(255, 255, 255)',
-      }}
-    />
-    <LiveError />
-    <LivePreview />
-  </LiveProvider>
-)
-
-const SyntaxHighligher = props => {
-  const className = props.children.props.className || ''
-  const matches = className.match(/language-(?<lang>.*)/)
-  const language = (matches && matches.groups && matches.groups.lang) || ''
+export function Layout({ title, description, ...props }) {
   return (
-    <Highlight
-      {...defaultProps}
-      code={props.children.props.children.trim()}
-      language={language}
-      theme={EDITOR_THEME}
-    >
-      {({ className, style, tokens, getLineProps, getTokenProps }) => (
-        <pre className={className} style={style}>
-          {tokens.map((line, i) => (
-            <div {...getLineProps({ line, key: i })}>
-              {line.map((token, key) => (
-                <span {...getTokenProps({ token, key })} />
-              ))}
-            </div>
-          ))}
-        </pre>
-      )}
-    </Highlight>
-  )
-}
-
-const components = {
-  pre: props =>
-    props.children.props.live ? (
-      <LiveCode {...props} />
-    ) : (
-      <SyntaxHighligher {...props} />
-    ),
-}
-
-export default ({ children }) => (
-  <Fragment>
-    <Global
-      styles={{
-        ':root': themeStyles,
-        '*': {
-          boxSizing: 'border-box',
-        },
-        html: {
-          backgroundColor: getProperty('colors', 'background'),
-        },
-        body: {
-          margin: 0,
-          fontFamily: getProperty('fonts', 'body'),
-          color: getProperty('colors', 'body'),
-        },
-        a: {
-          color: getProperty('colors', 'anchor'),
-        },
-        'h1,h2,h3,h4,h5,h6': {
-          margin: 0,
-          color: getProperty('colors', 'heading'),
-        },
-      }}
-    />
-    <XStack columns={['1fr', 'minmax(0, 960px)', '1fr']}>
-      <Spacer />
-
-      <YStack
-        width="100%"
-        maxWidth={960}
-        minHeight="100vh"
-        padding={16}
-        rows={['auto', '64px', '1fr']}
-        states={{
-          [breakpoints.sm]: {
-            padding: 32,
+    <Fragment>
+      <Head title={title} description={description} />
+      <Global
+        styles={{
+          'body,h1,h2,h3,h4,p,ol,ul,pre': {
+            margin: 0,
+          },
+          html: {
+            fontFamily: 'system-ui, sans-serif',
+            fontSize: '150%',
+            fontWeight: 300,
+            lineHeight: 1.5,
+            letterSpacing: '0.015em',
+            backgroundColor: 'hsl(210, 100%, 6%)',
+            color: 'white',
+          },
+          h1: {
+            fontSize: '3rem',
+            lineHeight: 1,
+          },
+          h2: {
+            fontSize: '1.6rem',
+            lineHeight: 1.2,
+          },
+          h3: {
+            fontSize: '1.3rem',
+            lineHeight: 1.2,
+          },
+          h4: {
+            fontSize: '1.1rem',
+            lineHeight: 1.2,
+          },
+          a: {
+            color: 'inherit',
+            textDecoration: 'none',
+            ':hover': {
+              textDecoration: 'underline',
+            },
+          },
+          code: {
+            margin: '-0.1em',
+            padding: '0.1em',
+            borderRadius: 5,
+            backgroundColor: 'rgb(8, 25, 41)',
+            color: 'rgb(173, 219, 103)',
           },
         }}
+      />
+      <div
+        css={{
+          display: 'grid',
+          gridTemplateRows: 'auto 1fr auto',
+          minHeight: '100vh',
+        }}
       >
-        <Header />
-        <Spacer />
-        <YStack as="main">
-          <MDXProvider components={components}>{children}</MDXProvider>
-        </YStack>
-      </YStack>
-    </XStack>
-  </Fragment>
-)
+        <header
+          css={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '2em',
+          }}
+        >
+          <Link to="/">souporserious</Link>
+          <nav
+            css={{
+              display: 'grid',
+              gridAutoFlow: 'column',
+              gridAutoColumns: 'min-content',
+              gridGap: '1em',
+              fontSize: '0.8rem',
+            }}
+          >
+            <a href="https://twitter.com/souporserious">Twitter</a>
+            <a href="https://github.com/souporserious">Github</a>
+            <a href="https://dribbble.com/souporserious">Dribbble</a>
+          </nav>
+        </header>
+        <main {...props} />
+        <footer css={{ display: 'grid', padding: '1em' }}>
+          <small
+            css={{
+              justifySelf: 'end',
+              color: 'rgba(255,255,255,0.65)',
+            }}
+          >
+            &copy; {new Date().getFullYear()} Travis Arnold
+          </small>
+        </footer>
+      </div>
+    </Fragment>
+  )
+}

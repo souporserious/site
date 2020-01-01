@@ -1,0 +1,66 @@
+---
+title: Build a dialog component in React
+date: 2019-12-31
+summary: Almost all user interfaces incorporate a dialog at some point. Let's look at how we can use React to create an accessible Alert and Modal component using the HTML5 dialog element.
+tags:
+  - react
+  - dialog
+  - tutorial
+---
+
+If you haven't heard of it yet, the `dialog` element came on the scene in [HTML 5.2](https://www.w3.org/TR/html52/interactive-elements.html#the-dialog-element). It has suprisingly great [browser support](https://caniuse.com/#search=dialog), however it is still not a popular solution for frameworks and libraries. I recently watched [HTML isn't done!](https://www.youtube.com/watch?v=ZFvPLrKZywA) which discussed how we as developers aren't using native elements and instead opt for our own because we require certain customizations and end up inheriting a burden of shipping more code and maintaing it. We also take on the responsibility of making it accessble, which until the [Accessibility Object Model](https://wicg.github.io/aom/explainer.html) is available, we don't have access to lower-level features that the browser does.
+
+Thankfully, the dialog element is one that is fully customizeable and meets almost all of our needs albeit clicking outside to close the modal, but we look at how we can implement that below.
+
+```jsx
+<>
+  <button>Hello World</button>
+  <dialog>Hello Modal</dialog>
+</>
+```
+
+```jsx live
+render(() => {
+  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const dialogRef = React.useRef(null)
+
+  React.useEffect(() => {
+    if (dialogOpen) {
+      dialogRef.current.showModal()
+    }
+  }, [dialogOpen])
+
+  React.useEffect(() => {
+    function handleClose() {
+      setDialogOpen(false)
+    }
+    dialogRef.current.addEventListener('close', handleClose)
+    return () => {
+      dialogRef.current.removeEventListener('close', handleClose)
+    }
+  }, [])
+
+  return (
+    <>
+      <input />
+      <span>{dialogOpen ? 'Open' : 'Closed'}</span>
+      <button onClick={() => setDialogOpen(!dialogOpen)}>Hello World</button>
+      <dialog
+        ref={dialogRef}
+        style={{ padding: 0 }}
+        onClick={event => {
+          if (event.target === dialogRef.current) {
+            event.target.close()
+          }
+        }}
+      >
+        <div style={{ padding: '1em' }}>
+          Hello Modal
+          <input />
+          <button onClick={() => dialogRef.current.close()}>Cancel</button>
+        </div>
+      </dialog>
+    </>
+  )
+})
+```

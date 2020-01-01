@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "develop": "gatsby develop --host 0.0.0.0",
+    "develop": "gatsby develop --host 0.0.0.0 --port 8888",
     "build": "gatsby build"
   },
   "dependencies": {
@@ -13,12 +13,17 @@
     "@mdx-js/react": "^1.5.1",
     "camel-to-kebab": "^1.1.0",
     "emotion-theming": "^10.0.19",
-    "gatsby": "^2.17.4",
+    "gatsby": "^2.18.17",
     "gatsby-plugin-mdx": "^1.0.59",
+    "gatsby-plugin-react-helmet": "^3.1.18",
+    "gatsby-plugin-sitemap": "^2.2.24",
+    "gatsby-remark-reading-time": "^1.1.0",
+    "gatsby-remark-slug": "^0.1.0",
     "gatsby-source-filesystem": "^2.1.40",
     "prism-react-renderer": "^1.0.2",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
+    "react-helmet": "^5.2.1",
     "react-live": "^2.2.2"
   }
 }

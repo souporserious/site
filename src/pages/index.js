@@ -1,73 +1,65 @@
 /** @jsx jsx */
-import { jsx } from '../components/jsx'
-import { Global } from '@emotion/core'
-import { Fragment } from 'react'
+import { jsx } from '@emotion/core'
+import { graphql, Link } from 'gatsby'
 
-import { Heading, Spacer, XStack, YStack } from '../components/ui-elements'
-import { Header } from '../components/header'
-import { LastPlayed } from '../components/last-played'
-import { breakpoints, themeStyles, getProperty } from '../theme'
+import { Layout } from '../components/Layout'
 
-export default () => (
-  <Fragment>
-    <Global
-      styles={{
-        ':root': themeStyles,
-        '*': {
-          boxSizing: 'border-box',
-        },
-        html: {
-          backgroundColor: getProperty('colors', 'background'),
-        },
-        body: {
-          margin: 0,
-          fontFamily: getProperty('fonts', 'body'),
-          color: getProperty('colors', 'body'),
-        },
-        a: {
-          color: getProperty('colors', 'anchor'),
-        },
-        'h1,h2,h3,h4,h5,h6': {
-          margin: 0,
-          color: getProperty('colors', 'heading'),
-        },
+export default ({ data }) => (
+  <Layout
+    css={{
+      display: 'grid',
+      gridGap: '4em',
+      padding: '6em 2em',
+    }}
+  >
+    <div
+      css={{
+        alignSelf: 'center',
+        display: 'grid',
+        gridAutoRows: 'max-content',
+        gridGap: '0.5em',
       }}
-    />
-    <XStack columns={['1fr', 'minmax(0, 960px)', '1fr']}>
-      <Spacer />
-
-      <YStack
-        as="main"
-        width="100%"
-        maxWidth={960}
-        minHeight="100vh"
-        padding={16}
-        rows="auto minmax(54px, 1fr) auto minmax(96px, 2fr) auto"
-        states={{
-          [breakpoints.sm]: {
-            padding: 32,
-          },
-        }}
-      >
-        <Header />
-
-        <Spacer />
-
-        <YStack>
-          <Heading level={2} size="xl" color="main-heading">
-            Travis Arnold
-          </Heading>
-          <Heading level={3} size="lg">
-            designer / developer
-          </Heading>
-        </YStack>
-
-        <Spacer />
-
-        <LastPlayed />
-      </YStack>
-
-      <Spacer />
-    </XStack>
-  </Fragment>
+    >
+      <h1>Travis Arnold</h1>
+      <h2 css={{ fontWeight: 300, color: 'rgb(173, 219, 103)' }}>
+        Designer / Developer
+      </h2>
+    </div>
+    <div
+      css={{
+        display: 'grid',
+        gridAutoRows: 'max-content',
+        gridGap: '0.5em',
+      }}
+    >
+      <h3>Recent Posts</h3>
+      {data.posts.nodes.map(post => (
+        <Link
+          key={post.frontmatter.title}
+          to={post.fields.slug}
+          css={{ fontSize: '1.5em' }}
+        >
+          {post.frontmatter.title}
+        </Link>
+      ))}
+    </div>
+  </Layout>
 )
+
+export const query = graphql`
+  {
+    posts: allMdx(
+      filter: { fields: { slug: { ne: null } } }
+      sort: { fields: frontmatter___date, order: DESC }
+    ) {
+      nodes {
+        frontmatter {
+          title
+        }
+        fields {
+          slug
+        }
+      }
+    }
+  }
+`
