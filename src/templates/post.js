@@ -83,6 +83,7 @@ export default function Post(props) {
             >
               {tags.map(tag => (
                 <li
+                  key={tag}
                   css={{
                     padding: '0.25em 0.5em',
                     borderRadius: '0.25em',

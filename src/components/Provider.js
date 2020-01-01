@@ -3,70 +3,68 @@ import { jsx } from '@emotion/core'
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live'
 import Highlight, { defaultProps } from 'prism-react-renderer'
 import { MDXProvider } from '@mdx-js/react'
+import { preToCodeBlock } from 'mdx-utils'
 
 import { nightOwl } from '../theme/night-owl'
-import { fixOrphans } from '../utils'
+import { calculateLinesToHighlight, fixOrphans } from '../utils'
 
-const LiveCode = props => (
-  <LiveProvider
-    code={props.children.props.children.trim()}
-    theme={nightOwl}
-    noInline={true}
-  >
-    <div
-      css={{
-        gridColumn: '1/-1',
-        display: 'grid',
-        gridTemplateColumns: '1fr 32em 1fr 1fr',
-        position: 'relative',
-        backgroundColor: nightOwl.plain.backgroundColor,
-      }}
-    >
-      <LiveEditor
-        padding={0}
-        css={{
-          gridColumn: '2',
-          fontFamily: `Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace`,
-          fontSize: '0.6em',
-          ':focus-within': {
-            backgroundColor: 'hsl(206, 90%, 14%)',
-          },
-          '> textarea, > pre': {
-            gridColumn: '2/3',
-            outline: 0,
-            ':hover': {
-              backgroundColor: 'hsl(206, 90%, 14%)',
-            },
-          },
-        }}
-        style={{
-          fontFamily: undefined,
-          padding: undefined,
-          backgroundColor: undefined,
-        }}
-      />
-      <LivePreview
-        css={{
-          alignSelf: 'start',
-          gridColumn: '3',
-          padding: '1em',
-          backgroundColor: 'white',
-          position: 'sticky',
-          top: 0,
-        }}
-      />
-      <LiveError
+function LiveCode({ codeString }) {
+  return (
+    <LiveProvider code={codeString} theme={nightOwl} noInline={true}>
+      <div
         css={{
           gridColumn: '1/-1',
-          gridRow: '2',
-          padding: '1em',
-          backgroundColor: '#d83d3d',
-          color: 'white',
-          position: 'sticky',
-          bottom: 0,
+          display: 'grid',
+          gridTemplateColumns: '1fr 32em 1fr 1fr',
+          position: 'relative',
+          backgroundColor: nightOwl.plain.backgroundColor,
         }}
-      />
-      {/* <div
+      >
+        <LiveEditor
+          padding={0}
+          css={{
+            gridColumn: '2',
+            fontFamily: `Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace`,
+            fontSize: '0.6em',
+            ':focus-within': {
+              backgroundColor: 'hsl(206, 90%, 14%)',
+            },
+            '> textarea, > pre': {
+              gridColumn: '2/3',
+              outline: 0,
+              ':hover': {
+                backgroundColor: 'hsl(206, 90%, 14%)',
+              },
+            },
+          }}
+          style={{
+            fontFamily: undefined,
+            padding: undefined,
+            backgroundColor: undefined,
+          }}
+        />
+        <LivePreview
+          css={{
+            alignSelf: 'start',
+            gridColumn: '3',
+            padding: '1em',
+            backgroundColor: 'white',
+            position: 'sticky',
+            top: 0,
+          }}
+        />
+        <LiveError
+          css={{
+            gridColumn: '1/-1',
+            gridRow: '2',
+            padding: '1em',
+            backgroundColor: '#d83d3d',
+            color: 'white',
+            position: 'sticky',
+            bottom: 0,
+          }}
+        />
+        {/* <div
         css={{
           gridColumn: '1',
           gridRow: '1',
@@ -80,18 +78,17 @@ const LiveCode = props => (
       >
         Live
       </div> */}
-    </div>
-  </LiveProvider>
-)
+      </div>
+    </LiveProvider>
+  )
+}
 
-const SyntaxHighligher = props => {
-  const className = props.children.props.className || ''
-  const matches = className.match(/language-(?<lang>.*)/)
-  const language = (matches && matches.groups && matches.groups.lang) || ''
+function SyntaxHighligher({ codeString, language, metastring }) {
+  const shouldHighlightLine = calculateLinesToHighlight(metastring)
   return (
     <Highlight
       {...defaultProps}
-      code={props.children.props.children.trim()}
+      code={codeString}
       language={language}
       theme={nightOwl}
     >
@@ -115,7 +112,27 @@ const SyntaxHighligher = props => {
             style={style}
           >
             {tokens.map((line, index) => (
-              <div {...getLineProps({ line, key: index })}>
+              <div
+                {...getLineProps({ line, key: index })}
+                css={{
+                  backgroundColor: shouldHighlightLine(index)
+                    ? 'hsl(209, 58%, 14%)'
+                    : null,
+                }}
+              >
+                <span
+                  css={{
+                    display: 'inline-block',
+                    width: '2ch',
+                    paddingLeft: '2px',
+                    paddingRight: '2ch',
+                    textAlign: 'right',
+                    color: 'rgba(255,255,255,0.46)',
+                    userSelect: 'none',
+                  }}
+                >
+                  {index + 1}
+                </span>
                 {line.map((token, key) => (
                   <span {...getTokenProps({ token, key })} />
                 ))}
@@ -139,12 +156,18 @@ const components = {
   h3: createHeading(`h3`),
   h4: createHeading(`h4`),
   p: ({ children, ...props }) => <p {...props}>{fixOrphans(children)}</p>,
-  pre: props =>
-    props.children.props.live ? (
-      <LiveCode {...props} />
-    ) : (
-      <SyntaxHighligher {...props} />
-    ),
+  pre: props => {
+    const codeProps = preToCodeBlock(props)
+    if (codeProps) {
+      if (props.children.props.live) {
+        return <LiveCode {...codeProps} />
+      } else {
+        return <SyntaxHighligher {...codeProps} />
+      }
+    } else {
+      return <pre {...props} />
+    }
+  },
 }
 
 export function Provider({ children }) {

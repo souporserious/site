@@ -20,6 +20,7 @@
     "gatsby-remark-reading-time": "^1.1.0",
     "gatsby-remark-slug": "^0.1.0",
     "gatsby-source-filesystem": "^2.1.40",
+    "mdx-utils": "^0.2.0",
     "prism-react-renderer": "^1.0.2",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
