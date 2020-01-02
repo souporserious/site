@@ -29,6 +29,8 @@ export function fixOrphans(children) {
         (sentence, word, index) =>
           index === words.length - 1
             ? `${sentence}\u00A0${word}`
+            : index === 0
+            ? `${sentence}${word}`
             : `${sentence} ${word}`,
         ''
       )
