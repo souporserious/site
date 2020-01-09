@@ -119,10 +119,6 @@ function SyntaxHighligher({ codeString, language, metastring }) {
                 {...getLineProps({ line, key: index })}
                 css={{
                   display: 'flex',
-                  borderLeft: '0.25em solid',
-                  borderLeftColor: shouldHighlightLine(index)
-                    ? 'rgb(173, 219, 103)'
-                    : 'transparent',
                   backgroundColor: shouldHighlightLine(index)
                     ? 'hsl(209, 58%, 14%)'
                     : undefined,
@@ -135,6 +131,10 @@ function SyntaxHighligher({ codeString, language, metastring }) {
                     padding: '0 0.5ch',
                     marginRight: '1ch',
                     textAlign: 'right',
+                    borderLeft: '0.25em solid',
+                    borderLeftColor: shouldHighlightLine(index)
+                      ? 'rgb(173, 219, 103)'
+                      : 'transparent',
                     backgroundColor: shouldHighlightLine(index)
                       ? 'hsl(209, 58%, 14%)'
                       : nightOwl.plain.backgroundColor,
