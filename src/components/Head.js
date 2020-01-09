@@ -2,6 +2,8 @@ import React from 'react'
 import Helmet from 'react-helmet'
 import { useStaticQuery, graphql } from 'gatsby'
 
+import favicon from '../images/favicon.ico'
+
 export function Head({
   title,
   description,
@@ -64,6 +66,8 @@ export function Head({
             : []
         )
         .concat(meta)}
-    />
+    >
+      <link rel="icon" href={favicon} />
+    </Helmet>
   )
 }
