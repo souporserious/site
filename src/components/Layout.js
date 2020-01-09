@@ -16,7 +16,7 @@ export function Layout({ title, description, ...props }) {
           },
           html: {
             fontFamily: 'system-ui, sans-serif',
-            fontSize: '150%',
+            fontSize: 'calc(1rem + 0.8vw)',
             fontWeight: 300,
             lineHeight: 1.5,
             letterSpacing: '0.015em',
@@ -65,8 +65,12 @@ export function Layout({ title, description, ...props }) {
         <header
           css={{
             display: 'flex',
+            alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '2em',
+            padding: '1em',
+            '@media screen and (min-width: 600px)': {
+              padding: '2em',
+            },
           }}
         >
           <Link to="/">souporserious</Link>
@@ -88,6 +92,7 @@ export function Layout({ title, description, ...props }) {
         <footer css={{ display: 'grid', padding: '1em' }}>
           <small
             css={{
+              fontSize: '0.75em',
               justifySelf: 'end',
               color: 'rgba(255,255,255,0.65)',
             }}

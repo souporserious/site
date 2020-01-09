@@ -98,8 +98,11 @@ function SyntaxHighligher({ codeString, language, metastring }) {
             display: 'grid',
             gridTemplateColumns: '1fr minmax(auto, 32em) 1fr',
             gridColumn: '1/-1',
+            maxWidth: '100%',
             padding: '1em 0',
             backgroundColor: nightOwl.plain.backgroundColor,
+            overflow: 'auto',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           <pre
@@ -115,20 +118,30 @@ function SyntaxHighligher({ codeString, language, metastring }) {
               <div
                 {...getLineProps({ line, key: index })}
                 css={{
+                  display: 'flex',
+                  borderLeft: '0.25em solid',
+                  borderLeftColor: shouldHighlightLine(index)
+                    ? 'rgb(173, 219, 103)'
+                    : 'transparent',
                   backgroundColor: shouldHighlightLine(index)
                     ? 'hsl(209, 58%, 14%)'
-                    : null,
+                    : undefined,
                 }}
               >
                 <span
                   css={{
                     display: 'inline-block',
                     width: '2ch',
-                    paddingLeft: '2px',
-                    paddingRight: '2ch',
+                    padding: '0 0.5ch',
+                    marginRight: '1ch',
                     textAlign: 'right',
+                    backgroundColor: shouldHighlightLine(index)
+                      ? 'hsl(209, 58%, 14%)'
+                      : nightOwl.plain.backgroundColor,
                     color: 'rgba(255,255,255,0.46)',
                     userSelect: 'none',
+                    position: 'sticky',
+                    left: 0,
                   }}
                 >
                   {index + 1}
@@ -147,7 +160,9 @@ function SyntaxHighligher({ codeString, language, metastring }) {
 
 const createHeading = Tag => props => (
   <Tag id={props.id}>
-    <a href={`#${props.id}`}>{props.children}</a>
+    <a href={`#${props.id}`} css={{ textDecoration: 'none !important' }}>
+      {props.children}
+    </a>
   </Tag>
 )
 
@@ -155,7 +170,6 @@ const components = {
   h2: createHeading(`h2`),
   h3: createHeading(`h3`),
   h4: createHeading(`h4`),
-  p: ({ children, ...props }) => <p {...props}>{fixOrphans(children)}</p>,
   pre: props => {
     const codeProps = preToCodeBlock(props)
     if (codeProps) {
