@@ -33,7 +33,16 @@ module.exports = {
     {
       resolve: `gatsby-plugin-mdx`,
       options: {
-        gatsbyRemarkPlugins: [`gatsby-remark-slug`],
+        gatsbyRemarkPlugins: [
+          `gatsby-remark-slug`,
+          `gatsby-remark-smartypants`,
+        ],
+      },
+    },
+    {
+      resolve: `gatsby-plugin-google-analytics`,
+      options: {
+        trackingId: `UA-155297880-1`,
       },
     },
     `gatsby-plugin-sitemap`,
