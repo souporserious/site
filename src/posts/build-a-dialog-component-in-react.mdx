@@ -76,20 +76,20 @@ One last thing we should add is returning focus to the element that opened our `
 
 ```jsx {3,8,12}
 function Modal({ children, open, onRequestClose }) {
- ...
- const lastActiveElement = React.useRef(null)
+  //  ...
+  const lastActiveElement = React.useRef(null)
 
- React.useEffect(() => {
- const node = ref.current
- if (open) {
- lastActiveElement.current = document.activeElement
- node.showModal()
- } else {
- node.close()
- lastActiveElement.current.focus()
- }
- }, [open])
- ...
+  React.useEffect(() => {
+    const node = ref.current
+    if (open) {
+      lastActiveElement.current = document.activeElement
+      node.showModal()
+    } else {
+      node.close()
+      lastActiveElement.current.focus()
+    }
+  }, [open])
+  //  ...
 }
 ```
 
