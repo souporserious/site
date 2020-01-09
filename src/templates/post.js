@@ -65,6 +65,8 @@ export default function Post(props) {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '1em 0',
+              overflow: 'auto',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             <small css={{ color: 'rgba(255,255,255,0.65)' }}>
