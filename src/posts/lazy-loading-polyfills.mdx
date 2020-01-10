@@ -1,0 +1,45 @@
+---
+title: Lazy loading polyfills
+date: 2020-01-10
+summary: In this post, we look at how we can utilize new browser features now. All while still supporting older browsers without the cost of increasing our code bundles.
+tags:
+  - dialog
+  - polyfill
+  - tutorial
+---
+
+As browsers ship new features, we gain better ways to manage our code. We hopefully don't have to think about cross-browser concerns, and we can _use the platform_. However, if you've been in web development for any amount of time, you'll soon realize that not all native elements provide the best experience. We use hacks, libraries, or full reimplementations. These aren't ideal for maintainability and can increase the final output of our code that users have to download. If you haven't used a polyfill before, they usually come in the form of a JavaScript library and add unsupported features in browsers before they are available.
+
+In the last post, we looked at [implementing a dialog element in React](/build-a-dialog-component-in-react/). Let's look at how we can import the dialog polyfill lazily, so unsupported browsers still get the same experience, and we minimize the cost that supported browsers incur.
+
+Today we are using the wonderful [dialog-polyfill](https://github.com/GoogleChrome/dialog-polyfill) from the Chrome team. I put together a demo on [Codesandbox](https://codesandbox.io/s/lazy-loading-polyfills-mrox8) if you would like to follow along.
+
+[![Edit lazy-loading-polyfills](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/clever-microservice-mrox8?fontsize=14&hidenavigation=1&theme=dark)
+
+If you use a bundler like [Webpack](https://webpack.js.org/guides/code-splitting/#dynamic-imports) or [Parcel](https://parceljs.org/code_splitting.html#using-dynamic-imports), you may have come across dynamic imports. These allow us to evaluate code lazily by invoking import as a function:
+
+```js
+import('dialog-polyfill')
+```
+
+When we invoke imports they return a promise when the file resolves. The resolved value will be the contents we fetched and allow us to interact with our code, in this case we will register the dialog polyfill with our dialog node:
+
+```js
+import('dialog-polyfill').then(polyfill => {
+  polyfill.registerDialog(document.querySelector('dialog'))
+})
+```
+
+Finally, we add our feature detection to make sure this will only ever load on browsers that don't support the `dialog` element:
+
+```js
+if (window.HTMLDialogElement === undefined) {
+  import('dialog-polyfill').then(polyfill => {
+    polyfill.registerDialog(document.querySelector('dialog'))
+  })
+}
+```
+
+That wasn't too bad!
+
+It won't always be as easy to lazy-load features like this, but this simple pattern can be used to save users from having to download extra code that will never be executed. One last thing to note is you do not need a bundler depending on your browser support now that [dynamic imports are a part of the spec](https://github.com/tc39/proposal-dynamic-import).
