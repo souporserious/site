@@ -105,6 +105,9 @@ export default function Post(props) {
                 gridTemplateColumns: '1fr 1fr',
                 padding: '1em',
                 backgroundColor: 'hsl(209, 67%, 10%)',
+                a: {
+                  textDecoration: 'none',
+                },
               }}
             >
               {previous && (
@@ -114,6 +117,9 @@ export default function Post(props) {
                     gridColumn: '1',
                     justifySelf: 'start',
                     textAlign: 'left',
+                    ':hover strong': {
+                      textDecoration: 'underline',
+                    },
                   }}
                 >
                   <div>Previous post</div>
