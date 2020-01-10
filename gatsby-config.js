@@ -45,6 +45,61 @@ module.exports = {
         trackingId: `UA-155297880-1`,
       },
     },
+    {
+      resolve: `gatsby-plugin-feed`,
+      options: {
+        query: `
+          {
+            site {
+              siteMetadata {
+                title
+                description
+                siteUrl
+                site_url: siteUrl
+              }
+            }
+          }
+        `,
+        feeds: [
+          {
+            query: `
+              {
+                allMdx(
+                  filter: { fields: { slug: { ne: null } } }
+                  sort: { fields: frontmatter___date, order: DESC }
+                ) {
+                  nodes {
+                    excerpt(pruneLength: 140)
+                    html
+                    fields {
+                      slug
+                    }
+                    frontmatter {
+                      date
+                      summary
+                      tags
+                      title
+                    }
+                  }
+                }
+              }
+            `,
+            serialize: ({ query: { site, allMdx } }) => {
+              return allMdx.nodes.map(node => ({
+                title: node.frontmatter.title,
+                description: node.frontmatter.summary || node.excerpt,
+                date: node.frontmatter.date,
+                url: site.siteMetadata.siteUrl + node.fields.slug,
+                guid: site.siteMetadata.siteUrl + node.fields.slug,
+                custom_elements: [{ 'content:encoded': node.html }],
+              }))
+            },
+            output: '/rss.xml',
+            title: 'souporserious RSS feed',
+          },
+        ],
+      },
+    },
     `gatsby-plugin-sitemap`,
     `gatsby-plugin-react-helmet`,
     `gatsby-remark-reading-time`,
