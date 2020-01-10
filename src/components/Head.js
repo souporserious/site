@@ -11,6 +11,7 @@ export function Head({
   meta = [],
   keywords = [],
 }) {
+  const hasTitle = Boolean(title)
   const { site } = useStaticQuery(
     graphql`
       query {
@@ -29,8 +30,8 @@ export function Head({
   return (
     <Helmet
       htmlAttributes={{ lang }}
-      title={title}
-      titleTemplate={`%s | ${site.siteMetadata.title}`}
+      title={hasTitle ? title : site.siteMetadata.title}
+      titleTemplate={hasTitle ? `%s | ${site.siteMetadata.title}` : `%s`}
       meta={[
         {
           name: `description`,
