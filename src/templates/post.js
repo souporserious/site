@@ -12,7 +12,12 @@ export default function Post(props) {
   const { body, excerpt, fields, frontmatter } = mdx
   const { date, summary, tags, title } = frontmatter
   return (
-    <Layout title={title} description={summary || excerpt} keywords={tags}>
+    <Layout
+      title={title}
+      description={summary || excerpt}
+      keywords={tags}
+      noIndex={fields.slug.includes('drafts')}
+    >
       <section>
         <article
           css={{
@@ -156,6 +161,7 @@ export const query = graphql`
         readingTime {
           text
         }
+        slug
       }
       frontmatter {
         date(formatString: "MM/DD/YYYY")

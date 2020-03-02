@@ -5,10 +5,10 @@ import { Link } from 'gatsby'
 
 import { Head } from './Head'
 
-export function Layout({ title, description, ...props }) {
+export function Layout({ title, description, noIndex, ...props }) {
   return (
     <Fragment>
-      <Head title={title} description={description} />
+      <Head title={title} description={description} noIndex={noIndex} />
       <Global
         styles={{
           'body,h1,h2,h3,h4,p,ol,ul,pre': {
@@ -52,6 +52,9 @@ export function Layout({ title, description, ...props }) {
             borderRadius: 5,
             backgroundColor: 'rgb(8, 25, 41)',
             color: 'rgb(173, 219, 103)',
+          },
+          blockquote: {
+            textIndent: '-0.8em',
           },
         }}
       />

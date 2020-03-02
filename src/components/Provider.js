@@ -6,7 +6,7 @@ import { MDXProvider } from '@mdx-js/react'
 import { preToCodeBlock } from 'mdx-utils'
 
 import { nightOwl } from '../theme/night-owl'
-import { calculateLinesToHighlight, fixOrphans } from '../utils'
+import { calculateLinesToHighlight } from '../utils'
 
 function LiveCode({ codeString }) {
   return (

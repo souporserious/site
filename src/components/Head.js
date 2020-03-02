@@ -10,6 +10,7 @@ export function Head({
   lang = `en`,
   meta = [],
   keywords = [],
+  noIndex,
 }) {
   const hasTitle = Boolean(title)
   const { site } = useStaticQuery(
@@ -33,6 +34,10 @@ export function Head({
       title={hasTitle ? title : site.siteMetadata.title}
       titleTemplate={hasTitle ? `%s | ${site.siteMetadata.title}` : `%s`}
       meta={[
+        noIndex && {
+          name: `robots`,
+          content: `noindex`,
+        },
         {
           name: `description`,
           content: metaDescription,
@@ -58,6 +63,7 @@ export function Head({
           content: `summary`,
         },
       ]
+        .filter(Boolean)
         .concat(
           keywords.length > 0
             ? {

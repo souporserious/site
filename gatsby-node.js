@@ -1,17 +1,17 @@
 const path = require('path')
 const { createFilePath } = require(`gatsby-source-filesystem`)
 
-exports.onCreateNode = async ({ node, getNode, actions, createNodeId }) => {
+exports.onCreateNode = async ({ node, getNode, actions }) => {
   const { createNodeField } = actions
   if (node.internal.type === `Mdx`) {
     const fileNode = getNode(node.parent)
     const source = fileNode.sourceInstanceName
-    if (source === 'posts') {
+    if (['drafts', 'posts'].includes(source)) {
       const slug = createFilePath({ node, getNode })
       createNodeField({
         node,
         name: `slug`,
-        value: slug,
+        value: source === 'drafts' ? `/drafts${slug}` : slug,
       })
     }
   }
