@@ -1,0 +1,29 @@
+---
+title: Auto size inputs in React
+date: 2020-01-28
+summary: Auto size inputs can provide a nice user experience for inline editing fields. In this post we will look at how we can use Canvas to measure text accurately to achieve auto sized inputs.
+tags:
+  - react
+  - canvas
+---
+
+Canvas is used primarily for advanced graphics creation and manipulation. It uses low-level features to achieve remarkable experiences. However, today we will only need a small method canvas offers which is the `measureText` method.
+
+```js
+const canvas = document.createElement('canvas')
+```
+
+Using a component model like React we can wrap up this functionality nicely with some simple hooks:
+
+```jsx
+function Input({ value, onChange }) {
+  const inputRef = React.useRef(null)
+  const [textWidth, setTextWidth] = React.useState(0)
+  React.useEffect(() => {
+    setTextWidth(measureText(value))
+  }, [value])
+  return <input ref={inputRef} />
+}
+```
+
+It is important to note that a pattern like this should be used sparingly and could potentially end up woresening the end-user experience.
