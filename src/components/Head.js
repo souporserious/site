@@ -13,7 +13,6 @@ export function Head({
   keywords = [],
   noIndex,
 }) {
-  const hasTitle = Boolean(title)
   const { site } = useStaticQuery(
     graphql`
       query {
@@ -27,13 +26,15 @@ export function Head({
       }
     `
   )
-  const metaDescription = description || site.siteMetadata.description
+  const hasTitle = Boolean(title)
+  const pageTitle = hasTitle ? title : site.siteMetadata.title
+  const pageDescription = description || site.siteMetadata.description
   const ogImageSource = `${site.siteMetadata.siteUrl}${ogimage}`
 
   return (
     <Helmet
       htmlAttributes={{ lang }}
-      title={hasTitle ? title : site.siteMetadata.title}
+      title={pageTitle}
       titleTemplate={hasTitle ? `%s | ${site.siteMetadata.title}` : `%s`}
       meta={[
         noIndex && {
@@ -42,15 +43,15 @@ export function Head({
         },
         {
           name: `description`,
-          content: metaDescription,
+          content: pageDescription,
         },
         {
           property: `og:title`,
-          content: title,
+          content: pageTitle,
         },
         {
           property: `og:description`,
-          content: metaDescription,
+          content: pageDescription,
         },
         {
           property: `og:image`,
