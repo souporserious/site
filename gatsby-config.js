@@ -107,6 +107,7 @@ module.exports = {
         ],
       },
     },
+    `gatsby-plugin-printer`,
     `gatsby-plugin-sitemap`,
     `gatsby-plugin-react-helmet`,
     `gatsby-remark-reading-time`,
