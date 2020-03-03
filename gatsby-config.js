@@ -1,6 +1,6 @@
 module.exports = {
   siteMetadata: {
-    siteUrl: `https://www.souporserio.us`,
+    siteUrl: `https://www.souporserious.com`,
     title: `souporserious`,
     author: `Travis Arnold`,
     description: `All things design and development.`,

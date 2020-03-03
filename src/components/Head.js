@@ -3,6 +3,7 @@ import Helmet from 'react-helmet'
 import { useStaticQuery, graphql } from 'gatsby'
 
 import favicon from '../images/favicon.ico'
+import ogimage from '../images/ogimage.png'
 
 export function Head({
   title,
@@ -20,13 +21,14 @@ export function Head({
           siteMetadata {
             title
             description
+            siteUrl
           }
         }
       }
     `
   )
-
   const metaDescription = description || site.siteMetadata.description
+  const ogImageSource = `${site.siteMetadata.siteUrl}${ogimage}`
 
   return (
     <Helmet
@@ -51,6 +53,10 @@ export function Head({
           content: metaDescription,
         },
         {
+          property: `og:image`,
+          content: ogImageSource,
+        },
+        {
           property: `og:type`,
           content: `website`,
         },
@@ -61,6 +67,10 @@ export function Head({
         {
           name: `twitter:card`,
           content: `summary`,
+        },
+        {
+          property: `twitter:image`,
+          content: ogImageSource,
         },
       ]
         .filter(Boolean)
