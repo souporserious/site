@@ -42,7 +42,7 @@ export default function Post(props) {
               gridGap: '0.5em',
             }}
           >
-            <h1>{fixOrphans(title)}</h1>
+            <h1>{title}</h1>
             <small css={{ color: 'rgba(255,255,255,0.64)' }}>
               {fields.readingTime.text}
             </small>
