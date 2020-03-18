@@ -1,0 +1,189 @@
+---
+title: Managing indexed collections with useMutableSource
+date: 2020-03-18
+summary: With the introduction of new low-level hooks from the React team, we can simplify parts of our UI development processes like managing indexes.
+tags:
+  - jsx
+  - components
+  - hooks
+  - react
+---
+
+import Disclaimer from '../components/Disclaimer.js'
+
+<Disclaimer>
+
+  This article covers the new [`useMutableSource`
+  hook](https://github.com/reactjs/rfcs/blob/master/text/0147-use-mutable-source.md)
+  that was just [released on 3/11](https://github.com/facebook/react/pull/18000)
+  and is only available under the `experimental` version of React. **I want
+  to strongly note that these _are not_ best practices in React and I'm using this
+  as a workaround for the lack of a primitive to manage indexes.** This is an
+  advanced use case that should be used to study more than practice.
+
+</Disclaimer>
+
+In most cases, managing indexes in React is rarely a problem. However, as you begin to abstract components into your library or possibly a shared system, exposing these implementation details can hinder how consumers use our components.
+
+Using the HTML select element as an example, how might we build a similar component that keeps track of its indexes and allows for full composition?
+
+The browser handles highlighting, keyboard interactions, grouping, and more for free without exposing any details of indexes. In an ideal world, we can easily build our own robust, accessible components like these in React. These wouldn't just be for the web either. Imagine a React Native app that uses a game controller, or a TV app that moves through large collections of items.
+
+## useMutableSource to the rescue
+
+At the time of this writing, the `useMutableSource` hook is only available in the experimental version of React. As there is no official documentation yet, please let me know if you find anything that should be updated.
+
+React added two new hooks called `createMutableSource` and `useMutableSource`. These hooks are responsible for scheduling concurrent-mode safe state updates. While they were created for [redux](https://react-redux.js.org/) style libraries, we'll be using them a bit differently today to manage indexes.
+
+I've created a [Codesandbox](https://codesandbox.io/s/useitemlist-w-usemutablesource-k14d1?fontsize=14&hidenavigation=1&module=%2Fsrc%2Fuse-item-list.tsx&theme=dark) with an example if you'd like to follow along. Please review the [RFC for current documentation](https://github.com/bvaughn/rfcs/blob/useMutableSource/text/0000-use-mutable-source.md) on how these new hooks work.
+
+[![Edit useItemList (useMutableSource)](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/useitemlist-usemutablesource-k14d1?fontsize=14&hidenavigation=1&theme=dark)
+
+## useItemList hook
+
+First, we'll create a hook to manage our indexes that we'll call `useItemList` which will be responsible for collecting a value and managing its position in the React tree. We will also be using two other hooks to help coordinate updates [`use-constant`](https://github.com/Andarist/use-constant) and [`use-force-update`](https://github.com/CharlesStover/use-force-update/).
+
+```js
+function useItemList() {
+  const items = React.useRef([])
+  const version = React.useRef(0)
+  const mutableSource = useConstant(() =>
+    React.createMutableSource(null, () => version.current)
+  )
+  const useItem = useConstant(({ value }) => {
+    let index = items.current.findIndex(item => item.value === value)
+    if (index === -1) {
+      index = items.current.length
+      items.current.push({ value })
+    }
+    return index
+  }, [])
+  return {
+    useItem,
+  }
+}
+```
+
+- `items` are used as a container for the items we want to subscribe
+- `version` is used in `createMutableSource` in order to prevent tearing updates in concurrent mode.
+- We then create our `mutableSource` which in our case is `null` since we are using this for a different purpose. Please note we need `useConstant` here so the returned value from `createMutableSource` does not change between renders.
+- Finally, we return a `useItem` hook which allows us access to the `index` based on a provided value. Note we are using `useConstant` here as well since hooks should _never_ change between renders.
+
+## Consuming mutableSource
+
+We've only set up the first of one of our new hooks, now we need to consume our `mutableSource` using `useMutableSource`:
+
+```js {4,9-16}
+function useItemList() {
+  const items = React.useRef([])
+  const version = React.useRef(0)
+  const callbacks = React.useRef([])
+  const mutableSource = useConstant(() =>
+    React.createMutableSource(null, () => version.current)
+  )
+  const useItem = useConstant(({ value }) => {
+    const getSnapshot = React.useCallback(() => version.current, [])
+    const subscribe = React.useCallback((_, callback) => {
+      callbacks.current.push(callback)
+      return () => {
+        callbacks.current = callbacks.current.filter(c => c !== callback)
+      }
+    }, [])
+    React.useMutableSource(mutableSource, getSnapshot, subscribe)
+
+    let index = items.current.findIndex(item => item.value === value)
+
+    if (index === -1) {
+      index = items.current.length
+      items.current.push({ value })
+    }
+
+    return index
+  }, [])
+
+  return {
+    useItem,
+  }
+}
+```
+
+The `useMutableSource` hook requires 3 arguments, the source we created earlier, a `getSnaphot` function and a `subscribe` function.
+
+- The `getSnaphot` function will be responsible for re-rendering our hook when it's value changes. In this case, we use the `version` here as well.
+- Our `subscribe` function will store the provided `callbacks` in a ref so we can access them later and let React know to schedule an update for our component.
+
+## Updating our component when indexes change
+
+This is the last portion to coordinating updates to our indexes safely and where `useMutableSource` shines:
+
+```js {2,4,27-39,44-54}
+function useItemList() {
+  const forceUpdate = useForceUpdate()
+  const items = React.useRef([])
+  const shouldCollectItems = React.useRef(null)
+  const version = React.useRef(0)
+  const callbacks = React.useRef([])
+  const mutableSource = useConstant(() =>
+    React.createMutableSource(null, () => version.current)
+  )
+  const useItem = useConstant(({ value }) => {
+    const getSnapshot = React.useCallback(() => version.current, [])
+    const subscribe = React.useCallback((_, callback) => {
+      callbacks.current.push(callback)
+      return () => {
+        callbacks.current = callbacks.current.filter(c => c !== callback)
+      }
+    }, [])
+    React.useMutableSource(mutableSource, getSnapshot, subscribe)
+
+    let index = items.current.findIndex(item => item.value === value)
+
+    if (index === -1) {
+      index = items.current.length
+      items.current.push({ value })
+    }
+
+    React.useLayoutEffect(() => {
+      return () => {
+        forceUpdate()
+        shouldCollectItems.current = true
+      }
+    }, [])
+
+    React.useLayoutEffect(() => {
+      if (shouldCollectItems.current === false) {
+        forceUpdate()
+        shouldCollectItems.current = true
+      }
+    })
+
+    return index
+  }, [])
+
+  React.useLayoutEffect(() => {
+    if (shouldCollectItems.current === true) {
+      version.current += 1
+      items.current = []
+      callbacks.current.forEach(callback => callback())
+      shouldCollectItems.current = null
+      forceUpdate()
+    } else {
+      shouldCollectItems.current = false
+    }
+  })
+
+  return {
+    useItem,
+  }
+}
+```
+
+We set up a `shouldCollectItems` flag to force update our parent `useItemList` hook when `useItem` is updated for any reason and falls out of sync. In the parent hook's `useLayoutEffect` we check for when that flag is set, and if it is, we increment our `version` and call each callback we stored earlier in the `subscribe` function. This will signal React to re-render all of our `useItem` hooks in the order which they appear in the tree regardless of the order we stored the `callbacks`. Now we have properly indexed items on every render before it's painted to the screen 🎉.
+
+## Summary
+
+Although this isn't what the `useMutableSource` hook was necessarily created for, I hope this gave you some ideas on how it can be used to manage concurrent safe updates for even nuanced problems like managing indexes.
+
+Hopefully, one day, we will have a better primitive for managing these indexes in React, for now, I've created an official [`useItemList` hook](https://github.com/souporserious/use-item-list) to help that can hopefully be updated in the future without breaking changes. This version uses a previous technique that I will update once `useMutableSource` is out of the experimental phase.
+
+Huge thanks to [@AndaristRake](https://twitter.com/AndaristRake) and [diegohaz](https://twitter.com/diegohaz) for their ongoing discussions about this and thanks to [brian_d_vaughn](https://twitter.com/brian_d_vaughn) and everyone else for their work on the `useMutableSource` hook.
