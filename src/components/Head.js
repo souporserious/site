@@ -71,7 +71,7 @@ export function Head({
         },
         {
           name: `twitter:card`,
-          content: `summary`,
+          content: postImageSource ? `summary_large_image` : `summary`,
         },
         {
           property: `twitter:image`,
