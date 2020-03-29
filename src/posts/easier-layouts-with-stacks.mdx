@@ -1,0 +1,35 @@
+---
+title: Simplifying layouts with Stacks
+date: 2020-03-24
+summary: If we step back and look at the landscape of how we build and use layouts across platforms and design tools, we can gain insight into how to create easy one-dimensional layouts in our user interfaces.
+image: ../images/stacks.png
+tags:
+  - theory
+  - design
+  - development
+  - stacks
+---
+
+## Mobile, Game, and Web Development
+
+Apple developers have been using constraint-based layouts from the beginning. Based on [Cassowary](<https://en.wikipedia.org/wiki/Cassowary_(software)>), you use linear equalities and inequalities, and the system will adhere to the guidelines you set. While constraints are a powerful way to manage layout, Apple realized it is tedious to set them up for every layout and offered a higher-level way to create layouts using [AutoLayout](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/AutolayoutPG/index.html) and what's called a [UIStackView](https://developer.apple.com/documentation/uikit/uistackview). Fast forward to the release of SwiftUI, and they now offer even simpler layout primitives called [Stacks](https://developer.apple.com/documentation/swiftui/view_layout_and_presentation#3126380).
+
+On the opposite side of mobile, Android uses what is called [LinearLayout](https://developer.android.com/guide/topics/ui/layout/linear). They also offer developers constraint-based layouts using [ConstraintLayout](https://developer.android.com/reference/androidx/constraintlayout/widget/ConstraintLayout), among others. If you are a Unity developer, you may be using their version of [AutoLayout](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/UIAutoLayout.html) or simpler primitives like [Horizontal/Vertical Layout Groups](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/script-HorizontalLayoutGroup.html).
+
+Moving over to the web, when CSS was first created, Cassowary's constraint system [was considered](https://gss.github.io/guides/ccss), but because the focus was on creating simple text documents at that time, it did not make it into the spec. Thankfully, about a decade later, we saw the introduction of [Flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox). CSS developers could finally center elements reliably!
+
+## Design tools
+
+We've looked at how development frameworks approach layout, but what about design tools?
+
+Similar to how Apple simplified constraint-based layouts with Stacks. We can see similarities in design tools like Figma and Sketch. Both of these tools started with constraint systems and have since added the ability to do [AutoLayout](https://www.figma.com/blog/announcing-auto-layout/) in Figma's case or [SmartLayout](https://www.sketch.com/features/smart-layout) in Sketch's case which is similar to Apple and Android in their own ways.
+
+Another tool that saw the limelight for a brief moment called Subform had a [great approach to layout](https://subformapp.com/articles/why-not-flexbox/) that used a custom engine that incorporated Stacks. Finally, we can see newer tools like FramerX adopting their version of a [Stack](https://www.framer.com/api/stack/) primitive.
+
+## Parent controlled layout
+
+All of the approaches we've looked at use various APIs to control layout, but they all have one thing in common, and that is the _parent_ is responsible for managing layout. Most importantly, concerns like spacing are controlled by the parent. This allows children to be repositioned and reconfigured easily without concerns being baked into the component abstraction.
+
+## Summary
+
+With the convergence of language around single-dimensional layouts, the web is increasingly becoming an outlier. While we will never remove Flexbox, nor should we, we can take inspiration from these simplified interfaces used throughout the industry. Stacks map better to the natural language we use to describe positioning items in relation to each other. In a future post, we'll look at how we can apply these techniques to CSS and transform the way we manage layout on the web.
