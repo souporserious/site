@@ -5,10 +5,15 @@ import { Link } from 'gatsby'
 
 import { Head } from './Head'
 
-export function Layout({ title, description, noIndex, ...props }) {
+export function Layout({ title, description, noIndex, image, ...props }) {
   return (
     <Fragment>
-      <Head title={title} description={description} noIndex={noIndex} />
+      <Head
+        title={title}
+        description={description}
+        noIndex={noIndex}
+        image={image}
+      />
       <Global
         styles={{
           'body,h1,h2,h3,h4,p,ol,ul,pre': {

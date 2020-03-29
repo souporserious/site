@@ -12,6 +12,7 @@ export function Head({
   meta = [],
   keywords = [],
   noIndex,
+  image,
 }) {
   const { site } = useStaticQuery(
     graphql`
@@ -30,7 +31,10 @@ export function Head({
   const pageTitle = hasTitle ? title : site.siteMetadata.title
   const pageDescription = description || site.siteMetadata.description
   const ogImageSource = `${site.siteMetadata.siteUrl}${ogimage}`
-
+  const postImageSource = image
+    ? `${site.siteMetadata.siteUrl}${image.childImageSharp.fluid.src}`
+    : null
+  const imageSource = postImageSource || ogImageSource
   return (
     <Helmet
       htmlAttributes={{ lang }}
@@ -55,7 +59,7 @@ export function Head({
         },
         {
           property: `og:image`,
-          content: ogImageSource,
+          content: imageSource,
         },
         {
           property: `og:type`,
@@ -71,7 +75,7 @@ export function Head({
         },
         {
           property: `twitter:image`,
-          content: ogImageSource,
+          content: imageSource,
         },
       ]
         .filter(Boolean)

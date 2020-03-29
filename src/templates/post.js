@@ -10,13 +10,14 @@ import { fixOrphans } from '../utils'
 export default function Post(props) {
   const { mdx, previous, next } = props.data
   const { body, excerpt, fields, frontmatter } = mdx
-  const { date, summary, tags, title } = frontmatter
+  const { date, summary, tags, title, image } = frontmatter
   return (
     <Layout
       title={title}
       description={summary || excerpt}
       keywords={tags}
       noIndex={fields.slug.includes('drafts')}
+      image={image}
     >
       <section>
         <article
@@ -168,6 +169,13 @@ export const query = graphql`
         summary
         tags
         title
+        image {
+          childImageSharp {
+            fluid {
+              ...GatsbyImageSharpFluid
+            }
+          }
+        }
       }
     }
     previous: mdx(id: { eq: $previousId }) {
