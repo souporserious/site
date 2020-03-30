@@ -38,18 +38,40 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
     reporter.panic(`🚨 ERROR: Loading "createPages" query`, result.errors)
   }
 
-  const posts = result.data.allMdx.nodes
+  const postTemplate = path.resolve(`./src/templates/post.js`)
+  const published = []
+  const drafts = []
 
-  posts.forEach((node, index) => {
-    const previous = index === posts.length - 1 ? null : posts[index + 1]
-    const next = index === 0 ? null : posts[index - 1]
+  result.data.allMdx.nodes.forEach(node => {
+    if (node.fields.slug.includes('drafts')) {
+      drafts.push(node)
+    } else {
+      published.push(node)
+    }
+  })
+
+  published.forEach((node, index) => {
+    const previous = index < published.length - 1 ? published[index + 1] : null
+    const next = index > 0 ? published[index - 1] : null
     actions.createPage({
       path: node.fields.slug,
-      component: path.resolve(`./src/templates/post.js`),
+      component: postTemplate,
       context: {
         id: node.id,
         previousId: previous ? previous.id : undefined,
         nextId: next ? next.id : undefined,
+      },
+    })
+  })
+
+  drafts.forEach(node => {
+    actions.createPage({
+      path: node.fields.slug,
+      component: postTemplate,
+      context: {
+        id: node.id,
+        previousId: undefined,
+        nextId: undefined,
       },
     })
   })

@@ -103,7 +103,7 @@ export default function Post(props) {
               ))}
             </ul>
           </div>
-          {/* {(previous || next) && (
+          {(previous || next) && (
             <div
               css={{
                 gridColumn: '1/-1',
@@ -146,7 +146,7 @@ export default function Post(props) {
                 </Link>
               )}
             </div>
-          )} */}
+          )}
         </article>
       </section>
     </Layout>
