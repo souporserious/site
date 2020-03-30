@@ -16,9 +16,11 @@ module.exports = {
     ],
   },
   plugins: [
-    `gatsby-plugin-sharp`,
     `gatsby-transformer-sharp`,
-    `gatsby-transformer-remark`,
+    `gatsby-plugin-react-helmet`,
+    `gatsby-plugin-sharp`,
+    `gatsby-plugin-sitemap`,
+    `gatsby-remark-reading-time`,
     {
       resolve: `gatsby-source-filesystem`,
       options: {
@@ -122,8 +124,5 @@ module.exports = {
         ],
       },
     },
-    `gatsby-plugin-sitemap`,
-    `gatsby-plugin-react-helmet`,
-    `gatsby-remark-reading-time`,
   ],
 }
