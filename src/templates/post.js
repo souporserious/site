@@ -43,7 +43,7 @@ export default function Post(props) {
               gridGap: '0.5em',
             }}
           >
-            <h1 css={{ overflow: 'auto' }}>{title}</h1>
+            <h1 css={{ overflowX: 'auto' }}>{title}</h1>
             <small css={{ color: 'rgba(255,255,255,0.64)' }}>
               {fields.readingTime.text}
             </small>
@@ -89,7 +89,7 @@ export default function Post(props) {
                 listStyle: 'none',
               }}
             >
-              {tags.map(tag => (
+              {tags.map((tag) => (
                 <li
                   key={tag}
                   css={{
