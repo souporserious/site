@@ -59,7 +59,9 @@ export function Layout({ title, description, noIndex, image, ...props }) {
             color: 'rgb(173, 219, 103)',
           },
           blockquote: {
-            textIndent: '-0.8em',
+            fontWeight: 500,
+            fontStyle: 'italic',
+            fontSize: '1.115rem',
           },
         }}
       />
