@@ -1,0 +1,206 @@
+---
+title: Stack components with CSS Grid
+date: 2020-04-28
+summary: Grid is praised for its two-dimensional layout capabilities but gets overshadowed by Flexbox for one-dimensional layouts. In this post, we'll look at how we can unlock advance layouts using components.
+image: ../images/stack-components-with-css-grid.png
+tags:
+  - design
+  - development
+  - css
+  - grid
+  - flexbox
+  - react
+---
+
+Grid is praised for its two-dimensional layout capabilities but gets overshadowed by Flexbox for one-dimensional layouts. In this post, we'll look at how we can unlock advance layouts using components.
+
+In design, space is considered a first-class element. One of my favorite quotes is from the famous graphic designer Jan Tschichold:
+
+> White space is to be regarded as an active element, not a passive background.
+
+Space is often an afterthought in web development. When hearing the word spacing, you may immediately think of padding or margin. Recently we've seen more importance around space with properties like [gap](https://caniuse.com/#search=gap), but for now, we can only practically use this with Grid, while Flexbox is left to wait for better support or use a [polyfill](https://twitter.com/devongovett/status/1244679626162450432). Even then, these still lack priority for more advanced properties like minimum and maximum constraints or fractional units.
+
+## What we'll be building
+
+In the [previous article](/easier-layouts-with-stacks), we talked about how Stack components are a better paradigm for one-dimensional layouts, and we briefly discussed a tool called [Subform](https://subformapp.com/) that took a new approach to layout. While only being on the scene for a short time, the paradigms created in this tool greatly simplified how we think about positioning items in relation to each other.
+
+We'll be using an inspired API to control the spacing between and around children on our main axis. Follow along with this example to learn how we can build more advanced one-dimensional layouts:
+
+https://codesandbox.io/s/stack-components-with-css-grid-iko6r
+
+## The power of components
+
+With components, we can encapsulate our styling logic in a first-class API, not have to wait for better support, and unlock more advanced ways to style our applications.
+
+One of the cons mentioned in the Subform implementation was having to ship a custom layout engine. This is a good reason not to have to load extra code, especially Javascript, just to render something that looks like Flexbox. However, with component models being standard in today's development workflows, we can take an interface similar to Subform and map it to whatever we want. While [Houdini](https://ishoudinireadyyet.com/) is still a ways off from having proper browser support for custom layouts, CSS Grid has the power we need to accomplish most of the same ideas. Instead of being able to control space on both our main and cross axes, we will only be dealing with the main axis today.
+
+## Getting the API right
+
+We'll start with the interface for controlling styles through our component:
+
+```js {6-8}
+interface StackProps {
+  axis?: 'horizontal' | 'vertical'
+  width?: Number | String
+  height?: Number | String
+  alignment?: 'start' | 'center' | 'end'
+  spaceStart?: Number | String
+  spaceBetween?: Number | String
+  spaceEnd?: Number | String
+  background?: String
+  foreground?: String
+  children: React.ReactNode
+}
+```
+
+Only three of our props specifically deal with space. Notice we don't have margin or padding defined. Thinking about space _as an element_ lends itself to an extremely simplified way of describing layout and, at the same time, unlocks the full constraint system that width and height use. Another problem this solves is that the `gap` property doesn't have a way to use dividers, colors, or backgrounds in gaps. Yet another reason to think of space as an element.
+
+Like Kevin mentions [in his article](https://subformapp.com/articles/why-not-flexbox/), this dramatically simplifies our layout API. Concepts are consolidated and easy to learn. How many times did you need to look up documentation for Flexbox or Grid?
+
+Again, the most significant benefit of this compared to current spacing techniques through padding, margin, or gap are we can use the same constraints we use for other elements like `minmax`, `fr` units, and anything else an element can use.
+
+## Grid to the rescue
+
+Since Grid implements parent-controlled layout, we can map through children in our component to extract the proper information to build up our layout to suffice the API we want:
+
+```js
+const isHorizontal = axis === 'horizontal'
+const trackCells = React.Children.toArray(children).reduce(
+  (cells, element, index) => {
+    const cell = {
+      element,
+      size: React.isValidElement(element)
+        ? (isHorizontal ? element.props.width : element.props.height) || 'auto'
+        : null,
+    }
+    return index === 0 || spaceBetween === undefined
+      ? cells.concat(cell)
+      : [...cells, { size: spaceBetween }, cell]
+  },
+  []
+)
+if (spaceStart) {
+  trackCells.unshift({ size: spaceStart })
+}
+if (spaceEnd) {
+  trackCells.push({ size: spaceEnd })
+}
+```
+
+First, we determine the direction of our main axis. Next, we loop through all children to determine what size each column or row should be. If the child has not defined a size, then we set it to `auto`. While looping through, if we have set `spaceBetween` we will insert that information in between each child while we build up our array. Finally, we add `spaceStart` and `spaceEnd` to their respective positions in the array if they are defined.
+
+This gives us a nice collection to work with similar to the following:
+
+```js
+const trackCells = [
+  { size: 'minmax(20px, 1fr)' },
+  { element: { $$typeof: Symbol(react.element) }, size: 'minmax(100px, 1fr)' },
+  { size: '20px' },
+  { element: { $$typeof: Symbol(react.element) }, size: 'minmax(100px, 1fr)' },
+  { size: 'minmax(20px, 1fr)' },
+]
+```
+
+Now that we have the proper information for the constraints of our layout we can build up our Grid styles, notice we create columns/rows that are specifically used for space:
+
+```js
+trackCells
+  .map((cell) => (typeof cell.size === 'number' ? `${cell.size}px` : cell.size))
+  .join(' ')
+
+// minmax(20px, 1fr) minmax(100px, 1fr) 20px minmax(100px, 1fr) minmax(20px, 1fr)
+```
+
+Since we are creating implicit columns/rows solely for spacing, we need to position the children accordingly. This is a nuanced problem and unforunately forces the children to be aware of the implementation. We'll use React Context to pass this information down:
+
+```jsx
+trackCells.map((cell, index) => (
+  <StackContext.Provider
+    value={{
+      [`grid${isHorizontal ? 'Column' : 'Row'}`]: index + 1,
+    }}
+  >
+    {cell.element}
+  </StackContext.Provider>
+))
+```
+
+Put it all together, and we have a Stack component that can define advance spacing constraints:
+
+```jsx
+const StackContext = React.createContext(null)
+
+function Stack({
+  axis,
+  width,
+  height,
+  alignment,
+  spaceStart,
+  spaceBetween,
+  spaceEnd,
+  background,
+  foreground,
+  children,
+  ...restProps
+}) {
+  const isHorizontal = axis === 'horizontal'
+  const cellStyles = React.useContext(StackContext)
+  const trackCells = React.Children.toArray(children).reduce(
+    (cells, element, index) => {
+      const cell = {
+        element,
+        size: React.isValidElement(element)
+          ? (isHorizontal ? element.props.width : element.props.height) ||
+            'auto'
+          : null,
+      }
+      return index === 0 || spaceBetween === undefined
+        ? cells.concat(cell)
+        : [...cells, { size: spaceBetween }, cell]
+    },
+    []
+  )
+  if (spaceStart) {
+    trackCells.unshift({ size: spaceStart })
+  }
+  if (spaceEnd) {
+    trackCells.push({ size: spaceEnd })
+  }
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridAutoFlow: axis === 'horizontal' ? 'column' : 'row',
+        [`gridTemplate${
+          isHorizontal ? 'Columns' : 'Rows'
+        }`]: trackCells
+          .map((cell) =>
+            typeof cell.size === 'number' ? `${cell.size}px` : cell.size
+          )
+          .join(' '),
+        [`${isHorizontal ? 'align' : 'justify'}Items`]: alignment,
+        color: foreground,
+        background,
+        width,
+        height,
+        ...cellStyles,
+      }}
+      {...restProps}
+    >
+      {trackCells.map((cell, index) => (
+        <StackContext.Provider
+          value={{
+            [`grid${isHorizontal ? 'Column' : 'Row'}`]: index + 1,
+          }}
+        >
+          {cell.element}
+        </StackContext.Provider>
+      ))}
+    </div>
+  )
+}
+```
+
+## Summary
+
+While this solution might not be entirely practical _yet_, simplifying how we approach styling not just on the web, but throughout the industry lowers the barrier to entry for more people to be able to express themselves. If we can consolidate API surfaces and reduce nuances, we can think about more significant problems at hand, like user experience and accessibility. If anything, I hope this article can help shed light on how to start thinking of space as a first-class element in your design and development endeavors.
