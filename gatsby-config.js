@@ -52,6 +52,7 @@ module.exports = {
       resolve: `gatsby-plugin-mdx`,
       options: {
         gatsbyRemarkPlugins: [
+          `gatsby-remark-embedder`,
           `gatsby-remark-slug`,
           `gatsby-remark-smartypants`,
           {
@@ -109,7 +110,7 @@ module.exports = {
               }
             `,
             serialize: ({ query: { site, allMdx } }) => {
-              return allMdx.nodes.map(node => ({
+              return allMdx.nodes.map((node) => ({
                 title: node.frontmatter.title,
                 description: node.frontmatter.summary || node.excerpt,
                 date: node.frontmatter.date,
