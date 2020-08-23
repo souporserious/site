@@ -16,7 +16,7 @@ This is where FLIP (First Last Invert Play) animations come to the rescue! [Coin
 
 To get started, we will define a simple `Box` component that takes a `size` prop that can be toggled between two states when clicked:
 
-https://codesandbox.io/s/build-a-simple-flip-animation-in-react-1-bgdln?file=/src/App.js
+https://codesandbox.io/s/build-a-simple-flip-animation-in-react-1-bgdln?codemirror=1
 
 ## Adding continuity
 
@@ -129,7 +129,7 @@ At this point, the box is rendered in its _Last_ position. We then apply the _In
 
 Whew, that's a lot! Try changing the duration and open up the console to see how the animation is applied. Notice we don't animate `width` or `height` and instead animate the performant `scale` and `translate` properties:
 
-https://codesandbox.io/s/build-a-simple-flip-animation-in-react-2-5pv9z
+https://codesandbox.io/s/build-a-simple-flip-animation-in-react-2-5pv9z?codemirror=1
 
 ## Interruptible animations
 
@@ -231,7 +231,7 @@ function Box({ size }) {
 
 Putting it all together, we now have interruptible, performant animations between both states of our box using any layout method we want. Try changing how the Flex alignment is applied or maybe use CSS Grid and see that the box will always animate correctly to its next state!
 
-https://codesandbox.io/s/build-a-simple-flip-animation-in-react-3-u1luk
+https://codesandbox.io/s/build-a-simple-flip-animation-in-react-3-u1luk?codemirror=1
 
 ## Summary
 
