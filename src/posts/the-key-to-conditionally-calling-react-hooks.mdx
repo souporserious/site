@@ -1,0 +1,56 @@
+---
+title: The key to calling React hooks conditionally
+date: 2020-09-02
+tags:
+  - development
+  - react
+  - hooks
+---
+
+One of the first rules of using hooks is to [_not_ call them conditionally](https://reactjs.org/docs/hooks-rules.html#only-call-hooks-at-the-top-level). However, the need may arise where you're in a situation, and you would rather not use components to abstract hook logic. While there is a solution to this problem, please remember there's a reason it's not recommended, and the following code could introduce performance issues or unneeded complexity.
+
+## Keys to the rescue
+
+[Key](https://reactjs.org/docs/lists-and-keys.html#keys) is an essential attribute in React, and you've probably seen the same warning we all have when looping over data to render. They help identify instances and allow React to make optimizations (this is why you should [never rely on index](https://medium.com/@robinpokorny/index-as-a-key-is-an-anti-pattern-e0349aece318) as a key).
+
+Knowing that keys help with identity, we can change a component's key whenever we want to remount the component as if it was the first time we see it. This ability to remount a component when we please is where we can utilize keys to swap out an underlying hook.
+
+We'll start with two custom hooks that both update the component after it has mounted:
+
+```jsx
+function useText() {
+  const [text, setText] = React.useState('')
+  React.useLayoutEffect(() => {
+    setTimeout(() => {
+      setText('Hello')
+      setTimeout(() => {
+        setText((text) => text + ' World')
+      }, 1000)
+    }, 1000)
+  }, [])
+  return text
+}
+
+function useCount() {
+  const [count, setCount] = React.useState(0)
+  React.useLayoutEffect(() => {
+    const id = setInterval(() => {
+      setCount((count) => count + 1)
+    }, 1000)
+    return () => {
+      clearInterval(id)
+    }
+  }, [])
+  return count
+}
+```
+
+Now in a simple `App` example, we'll toggle between our `useCount` and `useText` hook:
+
+https://codesandbox.io/s/toggling-react-hooks-l04hi?file=/src/App.js
+
+By changing the `key` at the same time as our logic responsible for swapping the hooks, everything works as expected since the component is fully remounted.
+
+## Conclusion
+
+While there is a way to make conditional hooks work, they are not practical. It creates a dependency between your parent and child components and is just an awkward API. Not to mention if you have complex logic going on in your component, remounting each time could have an affect on performance. If you need conditional logic in hooks, use either separate components or render all hooks every time and use booleans inside each hook to turn features on/off.
