@@ -1,5 +1,5 @@
 ---
-title: The key to calling React hooks conditionally
+title: The key to calling React Hooks conditionally
 date: 2020-09-02
 tags:
   - development
@@ -54,3 +54,7 @@ By changing the `key` at the same time as our logic responsible for swapping the
 ## Conclusion
 
 While there is a way to make conditional hooks work, they are not practical. It creates a dependency between your parent and child components and is just an awkward API. Not to mention if you have complex logic going on in your component, remounting each time could have an affect on performance. If you need conditional logic in hooks, use either separate components or render all hooks every time and use booleans inside each hook to turn features on/off.
+
+## Resources
+
+[How to break the rules of React Hooks](https://mattperry.is/writing-code/how-to-break-the-rules-of-react-hooks)
