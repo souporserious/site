@@ -1,5 +1,5 @@
 ---
-title: Build a Dialog component in React
+title: Build a Dialog Component in React
 date: 2020-01-08
 summary: Almost all user interfaces incorporate a dialog at some point. In this post we will look at how we can use React to create an accessible Modal component using the HTML5 dialog element.
 tags:
@@ -58,7 +58,7 @@ function Modal({ children, open, onRequestClose }) {
 
   React.useEffect(() => {
     const dialogNode = dialogRef.current
-    const handleCancel = event => {
+    const handleCancel = (event) => {
       event.preventDefault()
       onRequestClose()
     }

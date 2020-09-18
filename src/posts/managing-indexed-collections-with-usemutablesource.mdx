@@ -1,5 +1,5 @@
 ---
-title: Managing indexed collections with useMutableSource
+title: Managing Indexed Collections with useMutableSource
 date: 2020-03-18
 summary: With new low-level hooks for controlling state updates, we can simplify component prop APIs.
 tags:
@@ -13,15 +13,17 @@ import Disclaimer from '../components/Disclaimer.js'
 
 <Disclaimer>
 
-  This article covers the new [`useMutableSource`
-  hook](https://github.com/reactjs/rfcs/blob/master/text/0147-use-mutable-source.md)
-  that was just [released on 3/11](https://github.com/facebook/react/pull/18000)
-  and is only available under the `experimental` version of React. **I want
-  to strongly note that aside from `useMutableSource` some of these _are not_ best practices in React and I'm using this
-  as a workaround for the lack of a primitive to manage indexes.** This is an
-  advanced use case that should be used to study more than practice.
+
+This article covers the new [`useMutableSource`
+hook](https://github.com/reactjs/rfcs/blob/master/text/0147-use-mutable-source.md)
+that was just [released on 3/11](https://github.com/facebook/react/pull/18000)
+and is only available under the `experimental` version of React. **I want
+to strongly note that aside from `useMutableSource` some of these _are not_ best practices in React and I'm using this
+as a workaround for the lack of a primitive to manage indexes.** This is an
+advanced use case that should be used to study more than practice.
 
 </Disclaimer>
+
 
 In most cases, managing indexes in React is rarely a problem. However, as you begin to abstract components into your library or possibly a shared system, exposing these implementation details can hinder how consumers use our components.
 
@@ -40,15 +42,19 @@ This is an oversimplified example of the API we would like to achieve:
 ```jsx
 function Option({ children, value, useItem }) {
   const index = useItem({ value })
-  return <div>{index} {children}</div>
+  return (
+    <div>
+      {index} {children}
+    </div>
+  )
 }
 
 function Select({ children }) {
   const useItem = useItemList()
   return (
     <ul>
-      {React.Children.map(children, child =>
-        React.cloneElement(child, { useItem }),
+      {React.Children.map(children, (child) =>
+        React.cloneElement(child, { useItem })
       )}
     </ul>
   )
@@ -71,7 +77,7 @@ function useItemList() {
     React.createMutableSource(null, () => version.current)
   )
   const useItem = useConstant(({ value }) => {
-    let index = items.current.findIndex(item => item.value === value)
+    let index = items.current.findIndex((item) => item.value === value)
     if (index === -1) {
       index = items.current.length
       items.current.push({ value })
@@ -106,12 +112,12 @@ function useItemList() {
     const subscribe = React.useCallback((_, callback) => {
       callbacks.current.push(callback)
       return () => {
-        callbacks.current = callbacks.current.filter(c => c !== callback)
+        callbacks.current = callbacks.current.filter((c) => c !== callback)
       }
     }, [])
     React.useMutableSource(mutableSource, getSnapshot, subscribe)
 
-    let index = items.current.findIndex(item => item.value === value)
+    let index = items.current.findIndex((item) => item.value === value)
 
     if (index === -1) {
       index = items.current.length
@@ -151,12 +157,12 @@ function useItemList() {
     const subscribe = React.useCallback((_, callback) => {
       callbacks.current.push(callback)
       return () => {
-        callbacks.current = callbacks.current.filter(c => c !== callback)
+        callbacks.current = callbacks.current.filter((c) => c !== callback)
       }
     }, [])
     React.useMutableSource(mutableSource, getSnapshot, subscribe)
 
-    let index = items.current.findIndex(item => item.value === value)
+    let index = items.current.findIndex((item) => item.value === value)
 
     if (index === -1) {
       index = items.current.length
@@ -184,7 +190,7 @@ function useItemList() {
     if (shouldCollectItems.current === true) {
       version.current += 1
       items.current = []
-      callbacks.current.forEach(callback => callback())
+      callbacks.current.forEach((callback) => callback())
       shouldCollectItems.current = null
       forceUpdate()
     } else {

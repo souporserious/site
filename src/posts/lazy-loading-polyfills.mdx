@@ -1,5 +1,5 @@
 ---
-title: Lazy loading polyfills
+title: Lazy Loading Polyfills
 date: 2020-01-10
 tags:
   - dialog
@@ -24,7 +24,7 @@ import('dialog-polyfill')
 When we invoke imports they return a promise when the file resolves. The resolved value will be the contents we fetched and allow us to interact with our code, in this case we will register the dialog polyfill with our dialog node:
 
 ```js
-import('dialog-polyfill').then(polyfill => {
+import('dialog-polyfill').then((polyfill) => {
   polyfill.registerDialog(document.querySelector('dialog'))
 })
 ```
@@ -33,7 +33,7 @@ Finally, we add our feature detection to make sure this will only ever load on b
 
 ```js
 if (window.HTMLDialogElement === undefined) {
-  import('dialog-polyfill').then(polyfill => {
+  import('dialog-polyfill').then((polyfill) => {
     polyfill.registerDialog(document.querySelector('dialog'))
   })
 }
