@@ -1,0 +1,134 @@
+---
+title: Getting Started with Figma Webhooks
+date: 2020-09-18
+summary: Webhooks offer a first-class way to react to changes in Figma. In this article, we'll build a small service in Node to listen for these events.
+image: ../images/figma-webhooks.png
+tags:
+  - figma
+  - design
+  - development
+  - webhooks
+---
+
+Start by creating a simple server that parses JSON using [express](https://expressjs.com/en/starter/hello-world.html):
+
+```jsx
+const express = require('express')
+const bodyParser = require('body-parser')
+
+const PORT = 3000
+const app = express()
+
+app.use(bodyParser.json())
+
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`))
+```
+
+Webhooks require a public endpoint that Figma can ping to let us know when an event has happened. You will most likely use this in a server or CI tool, but today we'll be testing locally using the wonderful [ngrok](https://github.com/bubenshchykov/ngrok) package. This package allows us to point our local server to a public address easily:
+
+```jsx {3,12-14}
+const express = require('express')
+const bodyParser = require('body-parser')
+const ngrok = require('ngrok')
+
+const PORT = 3000
+const app = express()
+
+app.use(bodyParser.json())
+
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`))
+
+ngrok.connect(PORT).then(async (endpoint) => {
+  // public endpoint ready to use 🎉
+})
+```
+
+Now that we have a public URL, we can [create our webhook through Figma's API](https://www.figma.com/developers/api#webhooks-v2-endpoints) and subscribe to any [events](https://www.figma.com/developers/api#webhooks-v2-events) for a team we're on. We'll use [axios](https://github.com/axios/axios) to make interacting with the API easier and the internal [crypto](https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback) package to create the required passcode:
+
+```jsx
+const crypto = require('crypto')
+const response = await axios({
+  url: 'https://api.figma.com/v2/webhooks',
+  method: 'post',
+  headers: {
+    'X-Figma-Token': process.env.FIGMA_TOKEN,
+  },
+  data: {
+    event_type: 'FILE_UPDATE',
+    team_id: '68782045876942050',
+    passcode: crypto.randomBytes(48).toString('hex'),
+    endpoint,
+  },
+})
+```
+
+<small>
+
+
+_Note that when running our script, we expect a [figma token](https://www.figma.com/developers/api#auth-dev-token) to be available as an environment variable. This is required for authentication and can be done using a package like [dotenv](https://github.com/motdotla/dotenv) or set before running the Node script._
+
+</small>
+
+
+Once our webhook is created, we must respond with a `200` status code; otherwise Figma will keep trying to ping our endpoint:
+
+```js
+app.post('/', (request, response) => {
+  const { file_name, timestamp } = request.body
+  console.log(`${file_name} was updated at ${timestamp}`)
+  response.sendStatus(200)
+})
+```
+
+We now have a working Figma Webhook service 🎉
+
+## Security
+
+Although our code is working, it's still open to attackers. We'll use the passcode we created previously and check whether the same passcode has been sent back to us and respond appropriately:
+
+```jsx {9,14-20,35}
+const express = require('express')
+const bodyParser = require('body-parser')
+const ngrok = require('ngrok')
+const axios = require('axios')
+const crypto = require('crypto')
+
+const PORT = 3000
+const app = express()
+const passcode = crypto.randomBytes(48).toString('hex')
+
+app.use(bodyParser.json())
+
+app.post('/', (request, response) => {
+  if (request.body.passcode === passcode) {
+    const { file_name, timestamp } = request.body
+    console.log(`${file_name} was updated at ${timestamp}`)
+    response.sendStatus(200)
+  } else {
+    response.sendStatus(403)
+  }
+})
+
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`))
+
+ngrok.connect(PORT).then(async (endpoint) => {
+  const response = await axios({
+    url: 'https://api.figma.com/v2/webhooks',
+    method: 'post',
+    headers: {
+      'X-Figma-Token': process.env.FIGMA_TOKEN,
+    },
+    data: {
+      event_type: 'FILE_UPDATE',
+      team_id: '687045185276946050',
+      passcode,
+      endpoint,
+    },
+  })
+  console.log(`🎣 Webhook ${response.data.id} successfully created`)
+})
+```
+
+## Conclusion
+
+We looked at how to utilize Figma's new webhooks to respond to changes when events happen within teams. In a future article, we'll learn how we can use these hooks to source component images whenever a file updates using the [Figma Tools library](https://github.com/souporserious/figma-tools). I encourage you to play around with this new API and see if you can automate any part of your workflow!
