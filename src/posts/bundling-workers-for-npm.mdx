@@ -1,0 +1,50 @@
+---
+title: Bundling Web Workers for NPM
+date: 2020-11-14
+image: ../images/workers.png
+tags:
+  - development
+  - performance
+---
+
+You might have heard that JavaScript is single-threaded. In short, this means code executes synchronously, and we can only do a max amount of work in the browser before things can start to feel laggy. Enter web workers; this browser API gives us a way to offload computational work to a background thread, freeing up the main thread to stay performant.
+
+When working in a simple web stack, workers are pretty straightforward to work with, as seen in the [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers). However, in our modern era, we're most likely using a build system in possibly a [sandboxed environment](https://twitter.com/threepointone/status/1327702544940994562) or wanting to distribute our code on a package manager like NPM.
+
+## Workerize
+
+This is where [workerize](https://github.com/developit/workerize) comes to the rescue. This excellent lightweight library by [Jason Miller](https://twitter.com/_developit) makes bundling web workers an absolute breeze!
+
+```js
+const worker = workerize(`
+const canvas = new OffscreenCanvas(0, 0)
+const context = canvas.getContext('2d')
+export function getTextWidth(text) {
+  return context.measureText(text).width
+}
+`)
+worker.getTextWidth('Measure This Text').then((textWidth) => {
+  console.log(textWidth)
+})
+```
+
+## No Magic Just Brilliance
+
+You might be wondering how this magic works. It turns out to be a pretty simple solution. The function takes a template literal, converts it to a blob, and loads it in as if the worker was a file we requested using [createObjectURL](https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL). Brilliant!
+
+## Syntax Highlighting & Formatting
+
+While this library is great, it comes with tradeoffs since we need to write our worker in a string. Depending on how complex it is, this can become tedious since we lose out on text highlighting and formatting with Prettier.
+
+Not to worry, we can utilize yet another library to fix this. The [raw.macro](https://github.com/pveyes/raw.macro/) library can load a file as a string at build time, allowing us to retain text highlighting and formatting!
+
+```js
+import workerize from 'workerize'
+import raw from 'raw.macro'
+const workerString = raw('./worker.js')
+const worker = workerize(workerString)
+```
+
+## Summary
+
+Workers can free up the main thread when doing heavy work like [text measuring](https://codesandbox.io/s/react-offscreencanvas-text-measuring-6vibf), but can seem impossible to bundle with a package manager. In this post, we looked at how we can easily bundle our workers using the [workerize](https://github.com/developit/workerize) library and even restore the developer experience so we get the best of both worlds!
