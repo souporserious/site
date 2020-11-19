@@ -1,0 +1,34 @@
+---
+title: Bringing SwiftUI Stacks to the Web
+date: 2020-11-18
+summary: With the introduction of SwiftUI came a refined API to control UI layout. In this post, we'll look at how we can transfer these paradigms to the web.
+image: ../images/bringing-swiftui-stacks-to-the-web.png
+tags:
+  - development
+  - react
+  - swiftui
+---
+
+If you'd like the history on Stack layouts and why they are useful, please check out my other post [Easier Layouts with Stacks](/easier-layouts-with-stacks/).
+
+Today we'll be using React and Emotion, but the same principles should apply to any library that supports components or templates.
+
+## HStack
+
+Responsible for arranging views horizontally, we can use a simple Grid with `autoFlow` set to `column`. This will make sure as children are added, they default to creating new columns.
+
+https://codesandbox.io/s/swiftui-stacks-in-react-r0rr0?codemirror=1&fontsize=14&hidenavigation=1&initialpath=%2Fhstack&module=%2Fsrc%2FHStack.js&theme=dark
+
+## VStack
+
+Similar to HStack we can set `autoFlow` to `row`. This will make sure as children are added, they default to creating new rows.
+
+https://codesandbox.io/s/swiftui-stacks-in-react-r0rr0?codemirror=1&fontsize=14&hidenavigation=1&initialpath=%2Fvstack&module=%2Fsrc%2FVStack.js&theme=dark
+
+## ZStack
+
+This primitive is responsible for _overlaying_ children and aligning them on both axes. We use `placeItems` to align both axes of our children and set each immediate child to `gridArea: 1/1`. This will place children on top of one another, similar to position absolute, but preserving the layout.
+
+https://codesandbox.io/s/swiftui-stacks-in-react-r0rr0?codemirror=1&fontsize=14&hidenavigation=1&initialpath=%2Fzstack&module=%2Fsrc%2FZStack.js&theme=dark
+
+And that's it! Now we have layout primitives similar to SwiftUI 🎉
