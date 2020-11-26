@@ -1,0 +1,154 @@
+---
+title: Use Babel to Statically Analyze JSX
+date: 2020-11-26
+image: ../images/use-babel-to-statically-analyze-jsx.png
+tags:
+  - development
+  - babel
+  - react
+  - jsx
+---
+
+While Babel is popular for transpiling code from new to old syntax, we can also use it to gain static analysis of our code. Setting out to build an editor for [JSXUI](https://jsxui.com/), I've started by looking into how I can use Babel to create a Layers Panel. By the end of this post, we will have a simple plugin we can use to grab all of the JSX elements out of a string of code.
+
+## Building the plugin
+
+First, in order to visit any part of our JSX we will use a simple Babel plugin that inherits the JSX syntax plugin:
+
+```js
+import jsx from '@babel/plugin-syntax-jsx'
+
+export default () => {
+  return {
+    inherits: jsx,
+    visitor: {},
+  }
+}
+```
+
+Next, we set up some simple state and store the element's name and position as we visit each JSX element:
+
+```js {7-16}
+import jsx from '@babel/plugin-syntax-jsx'
+
+export default () => {
+  return {
+    inherits: jsx,
+    visitor: {
+      Program() {
+        this.tree = []
+      },
+      JSXElement(path) {
+        this.tree.push({
+          name: path.node.openingElement.name.name,
+          start: path.node.start,
+          end: path.node.end,
+        })
+      },
+    },
+  }
+}
+```
+
+We could stop here, but this isn't enough information about the relationship between our JSX and how it is nested. Scratching my head on how to solve nesting, I took inspiration from the awesome [Blocks](https://blocks-ui.com/) project. It turns out the ability to _enter_ and _exit_ a node in Babel provides an easy way for us to determine nesting:
+
+```js {11-25}
+import jsx from '@babel/plugin-syntax-jsx'
+
+export default () => {
+  return {
+    inherits: jsx,
+    visitor: {
+      Program() {
+        this.tree = []
+      },
+      JSXElement: {
+        enter(path) {
+          this.tree.push({
+            name: path.node.openingElement.name.name,
+            start: path.node.start,
+            end: path.node.end,
+            children: [],
+          })
+        },
+        exit() {
+          if (this.tree.length > 1) {
+            const child = this.tree.pop()
+            const parent = this.tree[this.tree.length - 1]
+            parent.children.push(child)
+          }
+        },
+      },
+    },
+  }
+}
+```
+
+This will give us a nicely nested array that matches our JSX.
+
+With the proper information collected, we now need an option to allow our plugin users to access the internal state we've built up. We can do this using the options feature of plugins:
+
+```js {8-13}
+import jsx from '@babel/plugin-syntax-jsx'
+
+export default () => {
+  return {
+    inherits: jsx,
+    visitor: {
+      Program: {
+        enter() {
+          this.tree = []
+        },
+        exit(_, state) {
+          state.opts.onTreeReady(this.tree[0])
+        },
+      },
+      JSXElement: {
+        enter(path) {
+          this.tree.push({
+            name: path.node.openingElement.name.name,
+            start: path.node.start,
+            end: path.node.end,
+            children: [],
+          })
+        },
+        exit() {
+          if (this.tree.length > 1) {
+            const child = this.tree.pop()
+            const parent = this.tree[this.tree.length - 1]
+            parent.children.push(child)
+          }
+        },
+      },
+    },
+  }
+}
+```
+
+Users of our plugin can now pass an `onTreeReady` function called with the resolved tree upon exiting the Program, which is the first _and_ last node Babel visits.
+
+## Using the plugin
+
+Now that we have a plugin that can analyze all of our JSX elements, how do we use it? Depending on our use case, we may be using this in a build step, but for our purposes today, we'll use the [standalone](https://babeljs.io/docs/en/babel-standalone) version of Babel that runs in the browser:
+
+```js
+import { transform } from '@babel/standalone'
+
+import plugin from './plugin'
+
+function parseCode(codeString) {
+  return new Promise((resolve) =>
+    transform(codeString, {
+      plugins: [[plugin, { onTreeReady: resolve }]],
+    })
+  )
+}
+```
+
+This wraps up our Babel parsing into a small function that will return a Promise with the resolved tree. Finally, we can build our Layers Panel we sought out originally 🎉
+
+https://codesandbox.io/s/use-babel-to-statically-analyze-jsx-knjy6?fontsize=14&hidenavigation=1&theme=dark&view=preview
+
+## Conclusion
+
+I hope you can take away a little more knowledge of Babel and how powerful it can be for use beyond transpiling. Something we didn't cover is anything more complicated than a single function will cause issues with nesting. We could check the immediate function and be smarter about adding elements, but that is beyond the scope of this post. If you have been hesitant to try Babel, I highly suggest diving in and trying to create your own plugins. However, if you want a simple solution for static analysis of your JSX use, I recommend the [jsx-info](https://github.com/wavebeem/jsx-info/) package that makes this easy and provides more detailed information.
