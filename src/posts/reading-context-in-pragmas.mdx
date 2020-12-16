@@ -1,0 +1,102 @@
+---
+title: Reading Context in Pragmas
+date: 2020-12-16
+summary: With their rise in popularity from libraries like Emotion, pragmas are a powerful way to augment every call site of JSX. This post will look at how we can build our own pragma that utilizes a Theme Context.
+tags:
+  - development
+  - react
+  - preact
+  - jsx
+  - pragma
+---
+
+A quick precursor to pragmas if you've never used or heard of them. Since JSX is sugar on top of JavaScript, once it is run through a build step, usually with Babel or TypeScript, we transform all of our JSX calls to functions for the respective platform:
+
+```jsx
+const element = <h1>Hello World</h1>
+
+// is transformed into ->
+
+const element = React.createElement('h1', null, 'Hello world')
+```
+
+This is where we can introduce pragmas. We can augment _what_ function we want to use when transforming our JSX. Rather than setting up a custom pragma for your whole codebase, the easiest way to play with pragmas is using a `@jsx` comment at the top of the file that points to the function you want to use:
+
+```jsx
+/** @jsx jsx */
+import React from 'react'
+
+function jsx(type, props, ...children) {
+  return React.createElement(type, props, ...children)
+}
+
+export default function App() {
+  return (
+    <div className="App">
+      <h1>Hello World</h1>
+      <p>Using pragmas for fun and profit.</p>
+    </div>
+  )
+}
+```
+
+This instructs the build tool to use our custom `jsx` function when compiling JSX calls.
+
+## Setting Up Context
+
+When first approaching setting up context in a pragma, [I naively did it in the jsx function](https://twitter.com/souporserious/status/1325656155276734465). While this seemed to work for simple cases, once any conditional logic was introduced, we [break the rules of hooks](https://twitter.com/MalerbaAustin/status/1325661840915968001). Digging into other libraries that utilize pragmas, MDX had the [most elegant solution](https://github.com/mdx-js/mdx/blob/master/packages/react/src/create-element.js) to this problem. Simple enough, we can wrap every call site with another element allowing us to use React/Preact as normal:
+
+```jsx {4-6,9-13}
+/** @jsx jsx */
+import React from 'react'
+
+function CreateElement({ originalType, ...props }) {
+  return React.createElement(originalType, props)
+}
+
+function jsx(type, props, ...children) {
+  return React.createElement(
+    CreateElement,
+    { originalType: type, ...props },
+    ...children
+  )
+}
+
+export default function App() {
+  return (
+    <div className="App">
+      <h1>Hello World</h1>
+      <p>Using pragmas for fun and profit.</p>
+    </div>
+  )
+}
+```
+
+Now we can set up context like we normally would:
+
+```jsx {1,4}
+const ThemeContext = React.createContext({})
+
+function CreateElement({ originalType, ...props }) {
+  const themeContext = React.useContext(ThemeContext)
+  return React.createElement(originalType, props)
+}
+
+function jsx(type, props, ...children) {
+  return React.createElement(
+    CreateElement,
+    { originalType: type, ...props },
+    ...children
+  )
+}
+```
+
+Putting it all together, we can now use our theme throughout any JSX props that use our custom pragma:
+
+https://codesandbox.io/s/reading-context-in-pragmas-kut90?file=/src/App.js
+
+## Conclusion
+
+While pragmas are quite powerful, you should use them with caution. We're adding functionality on top of potentially every single element, so there could easily be performance issues if you're not careful. It's also not practical to do this for [theming web apps](https://epicreact.dev/css-variables) and may be more suitable for something like React Native.
+
+We only covered adding a pragma for a single page, but there is a handy [Babel plugin](https://github.com/emotion-js/emotion/tree/master/packages/babel-plugin-jsx-pragmatic) from the Emotion team to enable this across an entire codebase. Finally, the latest JSX transform recently added an option for auto importing React/Preact `createElement` calls, which you can read about in detail [here](https://reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html). This was beyond this article's scope, but it is good to know if you are interested in writing your own pragmas.
