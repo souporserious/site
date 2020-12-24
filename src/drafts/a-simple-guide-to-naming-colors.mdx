@@ -1,0 +1,82 @@
+---
+title: A simple guide to naming UI colors
+date: 2020-04-29
+summary: User-defined experiences are making a comeback. In this post, we look at how we can easily name and expand color palettes in our design system to handle any color mode.
+tags:
+  - color
+  - design systems
+  - css properties
+---
+
+If you're like me, you've devoured every article about color that's come out to try and apply anything to make this process more pragmatic, easier to write, conceptulize, and maintain. However, once color modes became more popular with the rise of dark mode we're faced with a challenge of creating semantic names that work across different color modes. It's also important to note that it's not just dark mode we should worry about, accessibility plays an important role here and you should offer additional modes like high-contrast.
+
+First, let's look at how color is used across a variety of tools and industries and see if we can pull a common thread through them.
+
+## Scales
+
+If you aren't familiar with color scales these are usually the basis for any color palette. We create tints and shades based on a hue to produce a harmony of colors we can use throughout our UI designs. [Open color](https://yeun.github.io/open-color/) was my first exposure to this sort of scale and using a constrained palette from 0-9 to name the different hues used throughout UI. Material Design also popularized the way in which we use scales taking a different approach and using values ranging from 50-900.
+
+## Abstract
+
+Then there are more abstract names like `primary`, `secondary` that are usually used for naming variations of brand colors.
+
+show graphic similar to this for naming: (context-value-state)
+https://redd.gitbook.io/atomic-layout/fundamentals/responsive-props
+
+describing universal color palettes that scale between color modes.
+
+primary/secondary/tertiary (Apple)
+
+h1/h2/h3/etc
+
+encoding heiarchy into our naming methodology
+
+## Weights
+
+In design, in order to add interest and break elements up we add varying _weights_ to introduce contrast. By thinking about are scales this way we can dramatically simplify the language around colors in design systems. Similar to how heading elements work, we start with our first heading this is the main heading used to distguish _groups_ of writings. We use smaller headings as we enter a topic further. Interestingly enough, we only need about three headings to write about broad topics. We should never need to drill into a topic so much that we get lost, the same rule applies to color.
+
+While guidelines like Material use scales there is a bit lost.
+
+## Levels
+
+By breaking up our colors into more distinct categories we can create any palette we need while keeping things systematic and easy to follow:
+
+We just need a formula:
+
+`Element|State|Base`
+
+Element - card, sidebar, menu, button
+State - hovered, pressed, error, success
+Base - foreground, background, surface, separator
+
+As we've found with HTML building UI heiarchically works well. The same rules should apply to our color palette. We start at a high level and work our way down into specific pieces of UI. This could be considered the good parts of CSS. Contextual styling is extremely powerful, but paried with any ever growing API it gets harder to know what to do.
+
+These can expand and be mixed/matched as needed. Similar to CSS we can work our way into multiple states:
+
+```js
+const colors = {
+  foreground: 'white',
+  background: 'black',
+
+  card: {
+    foreground: 'inherit',
+    background: 'inherit',
+    variants: {
+      error: {
+        foreground: 'white',
+        background: 'red',
+      },
+    },
+  },
+
+  [Menu]: {},
+}
+```
+
+```jsx
+<Box separator="error" variants={{ small: { separator: 'success' } }} />
+```
+
+```jsx
+<Card variant="error" />
+```

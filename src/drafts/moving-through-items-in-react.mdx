@@ -1,0 +1,19 @@
+---
+title: Moving through items in React
+date: 2020-01-10
+summary: Item lists are used all over UI. In React specifically it's not necissarilly easy working with indexed lists that you want others to be able to use. In this post we look at how we can take advantage of hooks to collect information on an indexed list of items.
+tags:
+  - theory
+  - design
+  - development
+---
+
+We're going to build a select menu in React. Let's start with a more high level component that we'll call `ItemList`:
+
+```jsx
+<ItemList>
+  <Item>Apples</Item>
+  <Item>Bananas</Item>
+  <Item>Oranges</Item>
+</ItemList>
+```

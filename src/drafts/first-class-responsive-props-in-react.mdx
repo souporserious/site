@@ -1,0 +1,21 @@
+---
+title: First-class responsive props in React
+date: 2020-01-10
+summary: In this post, we look at how we can use a custom jsx pragma to drive media query props for easier responsive design.
+tags:
+  - dialog
+  - polyfill
+  - tutorial
+---
+
+Riffing on atomic-layout.
+
+https://github.com/kettanaito/atomic-layout
+https://survivejs.com/blog/atomic-layout-interview/
+
+```jsx
+<Grid areas={{ header: { columnStart: 1, columnEnd: 2 } }}>
+  <Image area="thumbnail" source="../../" />
+  <Stack area="header">Cool</Stack>
+</Grid>
+```

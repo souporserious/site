@@ -1,0 +1,68 @@
+---
+title: Rethinking the style interface
+date: 2020-01-10
+summary: When will design and development converge? If you look close enough they already have.
+tags:
+  - theory
+  - design
+  - development
+---
+
+First, we'll look at how creating styles has evolved over the last decade.
+
+**Inline Styles**
+
+Inline styles have made a comeback in recent years especially with the introduction of the [css prop](https://github.com/threepointone/glamor/blob/master/docs/createElement.md) from [Sunil Pai](https://twitter.com/threepointone).
+
+```jsx
+<div
+  css={{
+    display: 'grid',
+    gridAutoFlow: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }}
+/>
+```
+
+**Functional CSS**
+
+Libraries like [Tachyons](https://tachyons.io/) and [Tailwind](https://tailwindcss.com/) have popularized functional class names or single purpose classes that adhere to style guides.
+
+```jsx
+<div className="grid grid-rows-3 grid-flow-col gap-4" />
+```
+
+**Web Components**
+
+```jsx
+<grid-view auto-flow="columns" />
+```
+
+## Getting the API right
+
+Any time you're creating a new API whether it be for a component or a service to interact with your database it's important to pay attention to how it will be used, internalized, and rewritten. This is paramount to good API design and can be seen in libraries like React that craft their APIs with care and allow for its users to upgrade as painlessly as possible.
+
+With the rise of CSS-in-JS we can simplify the way in which we write and maintain our styles. By
+
+https://www.youtube.com/watch?v=NYb2GDWMIm0&feature=emb_title
+
+If you've been working with CSS for any amount of time, you probably had a great time styling your app. Sunil put this perfectly and was what intrigued me to initially try CSS in JS. With the rise of frameworks like react-native that allow us to write isomorphic components in React that work across a variety of platforms.
+
+In 1999 [HTML 4.01](https://www.w3.org/TR/2009/REC-html401-20090303/present/graphics.html) was released.
+
+Fast forward to today and we use styles on the web. We have constructive arguments about whether you should use CSS in JS, inline styles, and the list goes on. We've seen functional styles come on the scene to help us manage stylesheets and page sizes more effectively and even some patterns come back around.
+
+I think the intentions of the original APIs were on point.
+
+They are extremely simple to teach.
+
+Imagine if we approached events this way
+
+<div events="onclick: " />
+
+The one thing CSS solved wasn't that we could have a Zen Garden and rearrange all of our layouts. It allowed _contextual_ design. If we were to redesign an interface today or perhaps look at how others in the industry handle this.
+
+We should have simple primitives to build components. It should be as easy as possible to get your feet wet with UI development and design.
+
+Variants help us do this and React is a great model for this.

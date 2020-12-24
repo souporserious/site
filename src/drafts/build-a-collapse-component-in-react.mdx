@@ -1,0 +1,96 @@
+---
+title: Build a Collapse component in React
+date: 2020-03-24
+summary: Collapsible content allows developers and designers to use progressive disclosure when building user interfaces. Today we'll look at how to implment a component to handle this using CSS transitions.
+tags:
+  - theory
+  - design
+  - development
+---
+
+When first starting to build a new component I like to work out how the prop API will look and and behave before starting any of the implementation. In today's case, we're building a `Collapse` component:
+
+```jsx {6-11}
+function App() {
+  const [open, setOpen] = React.useState(false)
+  return (
+    <>
+      <button onClick={() => setOpen(open => !open)}>Toggle Collapse</button>
+      <Collapse
+        open={open}
+        onComplete={() => console.log('collapse is ', open ? 'open' : 'closed')}
+      >
+        <div>Collapsed content 🎉</div>
+      </Collapse>
+    </>
+  )
+}
+```
+
+```jsx
+function Collapse({ children, open, onComplete }) {
+  const ref = useRef()
+  const instant = useRef(true)
+  const transition = 'height 200ms ease-out'
+
+  function openCollapse() {
+    const node = ref.current
+    requestAnimationFrame(() => {
+      node.style.height = node.scrollHeight + 'px'
+    })
+  }
+
+  function closeCollapse() {
+    const node = ref.current
+    requestAnimationFrame(() => {
+      node.style.height = node.offsetHeight + 'px'
+      node.style.overflow = 'hidden'
+      requestAnimationFrame(() => {
+        node.style.height = 0
+      })
+    })
+  }
+
+  useLayoutEffect(() => {
+    if (open) {
+      openCollapse()
+    } else {
+      closeCollapse()
+    }
+  }, [open])
+
+  useLayoutEffect(() => {
+    const node = ref.current
+    function handleComplete() {
+      node.style.overflow = open ? 'initial' : 'hidden'
+      if (open) {
+        node.style.height = 'auto'
+      }
+      if (onComplete) {
+        onComplete()
+      }
+    }
+    function handleTransitionEnd(event) {
+      if (event.target === node && event.propertyName === 'height') {
+        handleComplete()
+      }
+    }
+    if (instant.current) {
+      handleComplete()
+      instant.current = false
+    }
+    node.addEventListener('transitionend', handleTransitionEnd)
+    return () => {
+      node.removeEventListener('transitionend', handleTransitionEnd)
+    }
+  }, [open])
+
+  return (
+    <div
+      ref={ref}
+      children={children}
+      style={{ transition: instant.current ? undefined : transition }}
+    />
+  )
+}
+```

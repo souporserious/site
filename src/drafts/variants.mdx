@@ -1,0 +1,81 @@
+---
+title: Variants and modifiers
+date: 2020-01-10
+summary: When will design and development converge? If you look close enough they already have.
+tags:
+  - theory
+  - design
+  - development
+---
+
+Variants are how configurations or APIs cascade, merge and inherit from each other.
+
+Top down similar to React is the easiest model to understand.
+
+```jsx
+const cool = () => (
+  <VariantProvider
+    variants={{
+      [Spinner]: {
+        // component props to override
+        size: [
+          'md', // default key
+          {
+            sm: {
+              width: 2,
+              height: 2,
+              borderWidth: 3,
+            },
+          },
+        ],
+      },
+      // Can we use Proxies like immer to build a schema?
+      // modes: {
+      //   dark: {}
+      // }
+    }}
+  >
+    <StackView>
+      <Spinner /> {/* size sm by default */}
+      <Spinner size="md" />
+    </StackView>
+  </VariantProvider>
+)
+const cool = () => (
+  <ThemeProvider
+    theme={{
+      [Spinner]: {
+        sizes: {
+          xs: {},
+        },
+      },
+      [Button]: {
+        color: 'red',
+      },
+    }}
+  >
+    <StackView>
+      <Spinner />
+      <Spinner size="sm" />
+    </StackView>
+  </ThemeProvider>
+)
+```
+
+Variants pair well with state machines
+
+https://twitter.com/rita_krutikova/status/1256880945841541120
+
+By keeping our component interfaces simple and having a first-class system to change props
+
+Uber's modifier system and styled-system's variant system.
+
+Variants should be considered how _props change over time_ and modifiers are one-off tweaks we may need to add when composing a UI.
+
+## Nested variants
+
+Learning from ARIA:
+
+Role, State, Properties
+
+https://www.w3.org/TR/wai-aria-1.1/

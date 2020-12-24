@@ -1,0 +1,48 @@
+---
+title: Resilient Design Systems in React with TypeScript
+date: 2020-11-15
+summary: TypeScript is a powerful way to write resilent code. Even if you don't use it, type definitions can help users of your library by helping editors provide rich autocompletion. In this post, we'll cover the nuances when managing Design Systems in TypeScript and how to get around them.
+tags:
+  - design
+  - development
+  - typescript
+  - react
+---
+
+Before we begin, this post assumes you've worked with TypeScript before. However, the concepts we'll cover are lightweight and you should be able to transfer knowledge from any library you work with that deals with types. If you've never worked with types, in a basic form, they are contracts we set up in order to ensure our program recieves the proper inputs and outputs. This offers many benefits, one being autocompletion, which really shines when driving a Design System.
+
+https://www.typescriptlang.org/play/index.html?ssl=2&ssc=27&pln=2&pc=50#code/C4TwDgpgBAwg9gGzgJwM5QLxQORmQSwFsBDZEbKAHx1QgGM4A7AE1PIFgAoUSKAITgAPAMqgEEdFgDeUBkmQAuWIhTpqAClTACjAOZQAZFCkBfAJRQTAbi5cAZgFdGdYPiazkEYsAgDBmsQklP1EQcVQLKS4oGNkmLSgIcUIIRmAlAAkAFQBZABkAUWTU4EwoZjg6BxS0gDo6T28IIoga4HVsZnwAN2wzaNjPYAdkRkTitK4TW04Grx8-dRk5FCVsAGIAIwAWVgBWPYpzLjmmxeWVRRw8IjYj-tnGhaEluPk1+64gA
+
+TypeScript offers JavaScript developers a type-safe way to construct their programs. When looking at this from a design standpoint type safety pairs well with design systems. An effective way of getting people to use your system or progam is an experience.
+
+Today we'll look at building a small design system that we can drive through React components. We'll get rich autocompletion and even allow people to override the system where they need to.
+
+First we need to define the primitives of our design system. We'll be covering a small subset today, but remember tokens can be any piece of your design system so you can bring this same type saftey anywhere to your project.
+
+### Colors
+
+Colors are one of the main pillars of a design system. These will be used often and benefit greatly from autocompletion.
+
+Starting with colors we can defne a object in map
+
+We will be using augmentation
+
+### Box Sizes
+
+## Augmenting properties
+
+In order to augment things properly we must use an _interface_.
+
+When using a code editor like VS Code you'll now recieve rich autocompletion and error handling. This helps to write resilent code that you can make sure wll work before compiling.
+
+## Summary
+
+We looked at how we can manage design systems better when writing UI components in JavaScript. This helps us to write resilent code, and help teach others how to use the system thus getting them into the pit of success sooner. The goal of your design system should be making the process of creating UI as fluid and seamless as possible and type definitions help you do just that.
+
+This work stands on the shoulders of giants. Huge thank you to the TypeScript community as they are extremely helpful and especially to ChanceTheDev for the help
+
+## Resources
+
+Design Systems in React Tejas
+MaterialUIs docs
+Tweets

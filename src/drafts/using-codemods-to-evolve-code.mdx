@@ -1,0 +1,122 @@
+---
+title: Evolving components with codemods
+date: 2020-05-10
+summary: It's certain that the way in which we write software won't be the same tomorrow or a decade from now. AST manipulation can help with just that.
+tags:
+  - design
+  - development
+  - css
+  - grid
+  - flexbox
+  - react
+---
+
+Codemods are a wonderful tool to add to your toolbox. When creating APIs or even moving libraries, we can use codemods to make our lives easier and focus on more important tasks.
+
+## AST Transformation
+
+Codemods solely work off of AST transformations. These are detailed bits of information that describe all sorts of charaterisittcs of your code like line positions, types, and much more.
+
+## Evolving APIs
+
+When working through a component library or and sort of code for that matter The difference between good/great API design is thinking about how your code will evolve. You may find that certain component doesn't work well or you might want to switch a codebase from using class names to CSS in JS.
+
+## Finding all components
+
+First, we will map out some expectations of what we need our codemod to do:
+
+- Remove the old component from imports
+- Add the new component as an import if it does not exist yet
+- Find every place the old component is defined and replace it with the new one
+- Update any APIs that may have changed between both solutions
+
+## Handling imports
+
+By visiting the ImportDeclration we can determine what we need to remove and add.
+
+## Swapping or adding props
+
+When inspecting the AST you will find that props in JSX are referred to as attributes.
+
+```js
+export default function ({ types: t }) {
+  function matchesComponentName(path, name) {
+    const [object, property] = name.split('.')
+    return (
+      path.node.name.object.name === object &&
+      path.node.name.property.name === property
+    )
+  }
+  function changeComponentName(path, name) {
+    path.node.name = t.jSXIdentifier(name)
+  }
+  function createAttribute(name, value) {
+    const literalType =
+      typeof value === 'number'
+        ? t.jSXExpressionContainer(literalType(value))
+        : t.stringLiteral(value)
+    return t.jSXAttribute(t.jSXIdentifier(name), literalType)
+  }
+  return {
+    visitor: {
+      JSXOpeningElement(path) {
+        componentsToChange.forEach(([from, to, propsToConvert]) => {
+          if (matchesComponentName(path, from.name)) {
+            changeComponentName(path, to.name)
+            if (propsToConvert) {
+              propsToConvert.forEach(([fromName, toName]) => {
+                path.node.attributes.forEach((attribute, index) => {
+                  if (attribute.name.name === fromName) {
+                    attribute.name.name = toName
+                  }
+                })
+              })
+            }
+            if (to.props) {
+              to.props.forEach(([prop, value]) => {
+                path.node.attributes.unshift(createAttribute(prop, value))
+              })
+            }
+          }
+        })
+      },
+      JSXClosingElement(path) {
+        componentsToChange.forEach(([from, to]) => {
+          if (matchesComponentName(path, from.name)) {
+            changeComponentName(path, to.name)
+          }
+        })
+      },
+      ImportDeclaration(path) {
+        if (path.node.source.value !== '@planning-center/ui-kit') {
+          return
+        }
+        path.node.specifiers = path.node.specifiers
+          .map((specifier) => {
+            if (oldComponentNames.includes(specifier.imported.name)) {
+              const [oldComponent, newComponent] = componentsToChange[
+                oldComponentNames.indexOf(specifier.imported.name)
+              ]
+              const hasNewImportAlready = path.node.specifiers.some(
+                (specifier) => specifier.imported.name === newComponent.name
+              )
+              return hasNewImportAlready
+                ? null
+                : t.importSpecifier(
+                    t.identifier(newComponent.name),
+                    t.identifier(newComponent.name)
+                  )
+            } else {
+              return specifier
+            }
+          })
+          .filter(Boolean)
+      },
+    },
+  }
+}
+```
+
+## Summary
+
+Codemods are easy to write for JSX and allow component libraries to evolve. If you'd like to dive further into AST transformation I highly reccommend Kent C Dodds FrontendMasters coures. I hope this gave you a glimpse into the power of codemods and how easy they can be to write.

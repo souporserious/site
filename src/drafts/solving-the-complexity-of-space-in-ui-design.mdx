@@ -1,0 +1,16 @@
+---
+title: Solving the complexity of space in UI design
+date: 2020-01-10
+summary: By analyzing how code is being used across a codebase we can make better decisions about changes.
+tags:
+  - jsx
+  - components
+---
+
+https://kean.blog/post/swiftui-layout-system#fnref:6
+
+The box model is as old as the web and time and time again people will fret about how to position and center things.
+
+Like logical properties we can describe everything about space using Flexbox terminology. While using CSS Grid is possible to mimic this behavior in React Native specifically there is no such support.
+
+Because of React's top-down approach it becomes more tedious to reason about how to build up UI are there any context providers or Fragments being wrapped we need to work our way through? How will we know if a context should be active or not to turn things like modifiers on and off appropriately?

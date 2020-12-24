@@ -1,0 +1,20 @@
+---
+title: Using Spacers From 96 'Til Infinity
+date: 2020-08-31
+summary: Originally used to wrangle table layouts, Spacers are responsible for controlling whitespace throughout UI. In this article, we'll look at how we can utilize Spacers to build advance layouts.
+tags:
+  - design
+  - development
+---
+
+Spacing is essential for design. It provides contrast and emotion and can be the difference between great and bad design. Systems like [8-point grid](https://medium.com/swlh/the-comprehensive-8pt-grid-guide-aa16ff402179) streamline workflows and offer a consistent experience for users by systemizing space used throughout UI. On the web specifically, there are many ways to define and control space.
+
+In 1996, the web was trailblazing a new way to communicate. While CSS wouldn't come until December that year, [Spacer GIFs](https://en.wikipedia.org/wiki/Spacer_GIF) were all the rage. This hack used a 1x1 image that offered developers a way to control the whitespace between elements.
+
+With the introduction of CSS and the box model, the W3C was quick to [denounce spacers](https://www.w3.org/TR/WCAG20-TECHS/C18.html#C18-description). Reasonably so, they weren't a first-class solution, and with the box model, margin and padding could now be used to control spacing — no hacks needed. As time went on, Flexbox and Grid introduced additional languages for defining layout.
+
+Like most of the CSS syntax, properties have been added over the years to cater to the evergrowing needs design that works for everyone. While this has happened, the control of space, in particular, has grown in complexity. In his article, [Why Not Flexbox?](https://subformapp.com/articles/why-not-flexbox/), Kevin Lynagh details these complexities and challenges the box model by replacing it with a more pragmatic language around space.
+
+Which brings us to today, with modern development, most libraries support components. These abstractions allow us to mask over complexities and use simple inputs and outputs to build incredible experiences from user interfaces to [immersive 3D designs](https://github.com/react-spring/react-three-fiber#react-three-fiber).
+Summary
+With SwiftUI and Jetpack Compose utilizing Spacers it's a safe bet to incorporate them into your workflow. This is especially true if you're using a component system like React you can even use CSS Grid to avoid rendering blank elements to the DOM.

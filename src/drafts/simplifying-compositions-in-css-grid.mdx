@@ -1,0 +1,21 @@
+---
+title: More flexible compositions with CSS Grid
+date: 2020-01-10
+summary: In this post, we look at how we can utilize new browser features now. All while still supporting older browsers without the cost of increasing our code bundles.
+tags:
+  - dialog
+  - polyfill
+  - tutorial
+---
+
+Riffing on atomic-layout.
+
+https://github.com/kettanaito/atomic-layout
+https://survivejs.com/blog/atomic-layout-interview/
+
+```jsx
+<Grid areas={{ header: { columnStart: 1, columnEnd: 2 } }}>
+  <Image area="thumbnail" source="../../" />
+  <Stack area="header">Cool</Stack>
+</Grid>
+```
