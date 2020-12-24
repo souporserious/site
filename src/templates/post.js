@@ -10,7 +10,8 @@ import { fixOrphans } from '../utils'
 export default function Post(props) {
   const { mdx, previous, next } = props.data
   const { body, excerpt, fields, frontmatter } = mdx
-  const { date, summary, tags, title, image } = frontmatter
+  const { date, summary, title, image } = frontmatter
+  const tags = frontmatter.tags || []
   return (
     <Layout
       title={title}
