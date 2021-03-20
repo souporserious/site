@@ -94,7 +94,7 @@ export function Layout({ title, description, noIndex, image, ...props }) {
             }}
           >
             <a href="https://twitter.com/souporserious">Twitter</a>
-            <a href="https://github.com/souporserious">Github</a>
+            <a href="https://github.com/souporserious">GitHub</a>
             <a href="https://dribbble.com/souporserious">Dribbble</a>
           </nav>
         </header>
