@@ -8,6 +8,11 @@ import { preToCodeBlock } from 'mdx-utils'
 import { nightOwl } from '../theme/night-owl'
 import { calculateLinesToHighlight } from '../utils'
 
+function CodeLink({ column, row, children }) {
+  // const props = useCodeLink(column, row)
+  return <a>{children}</a>
+}
+
 function LiveCode({ codeString }) {
   return (
     <LiveProvider code={codeString} theme={nightOwl} noInline={true}>
@@ -158,7 +163,7 @@ function SyntaxHighligher({ codeString, language, metastring }) {
   )
 }
 
-const createHeading = Tag => props => (
+const createHeading = (Tag) => (props) => (
   <Tag id={props.id}>
     <a href={`#${props.id}`} css={{ textDecoration: 'none !important' }}>
       {props.children}
@@ -170,7 +175,7 @@ const components = {
   h2: createHeading(`h2`),
   h3: createHeading(`h3`),
   h4: createHeading(`h4`),
-  pre: props => {
+  pre: (props) => {
     const codeProps = preToCodeBlock(props)
     if (codeProps) {
       if (props.children.props.live) {
@@ -182,6 +187,7 @@ const components = {
       return <pre {...props} />
     }
   },
+  CodeLink,
 }
 
 export function Provider({ children }) {

@@ -1,0 +1,137 @@
+---
+title: Bundle TypeScript for NPM with Esbuild
+date: 2021-06-03
+summary: Compared to other build tools, Esbuild is a radically performant bundler. In this post, we'll look at how we can quickly compile TypeScript projects that can be published to NPM.
+image: ../images/bringing-swiftui-stacks-to-the-web.png
+tags:
+  - development
+  - esbuild
+  - react
+---
+
+While the industry has relied on compilers like Babel or TypeScript which are written in JavaScript. Esbuild is making strides in the community and is written in the performant GO language. Both themselves compilers, Esbuild is a companion to TypeScript and allows us to bundle our code much more quickly.
+
+## Getting Started
+
+First we'll install the library and set up our initial build script:
+
+<!-- add preference option for bundler -->
+
+```bash
+yarn add Esbuild typescript
+```
+
+```bash
+npm install Esbuild typescript
+```
+
+```json filename=package.json
+{
+  "scripts": {
+    "build": "node build"
+  }
+}
+```
+
+Esbuild will automatically detect we are using TypeScript and attempt to load a `tsconfig.json` file if available. Note that compiler options like `target` will take precendence over Esbuild options.
+
+```js filename=build.js
+const { buildSync } = require('esbuild')
+
+buildSync({
+  entryPoints: ['src/index.ts'],
+  outdir: 'dist',
+  bundle: true,
+})
+```
+
+An important option we need to set is the `external` property. This makes sure not to bundle all of our dependencies since we are publishing this library to NPM. Convinently enough, we can use our `package.json` file as a source of truth:
+
+```js {2,8} filename=build.js
+const { buildSync } = require('esbuild')
+const { dependencies, peerDependencies } = require('./package.json')
+
+buildSync({
+  entryPoints: ['src/index.ts'],
+  outdir: 'dist',
+  bundle: true,
+  external: Object.keys(dependencies).concat(Object.keys(peerDependencies)),
+})
+```
+
+Now if we run our script we should see our built files in a `dist` directory:
+
+```bash
+yarn build
+```
+
+```bash
+npm run build
+```
+
+## Additional Formats
+
+When bundling for NPM it's best to provide multiple formatted files for the various ways your library might be consumed. We can do this easily by pulling out the shared options and pass them into any number of different builds. By default, `format` is set to [iife](https://esbuild.github.io/api/#format-iife) for the browser. We'll add an additional format for ESM users:
+
+```js
+const { build } = require('esbuild')
+const { dependencies, peerDependencies } = require('./package.json')
+
+const shared = {
+  entryPoints: ['src/index.ts'],
+  bundle: true,
+  external: Object.keys(dependencies).concat(Object.keys(peerDependencies)),
+}
+
+build({
+  ...shared,
+  outfile: 'dist/index.js',
+})
+
+build({
+  ...shared,
+  outfile: 'dist/index.esm.js',
+  format: 'esm',
+})
+```
+
+## Type Definitions
+
+Since Esbuild only bundles our code, we still need to generate a defitions file. This will allow consumers of our library to utilize the types we've written.
+
+While it's easy to emit multiple declaration files [using TypeScript directly](https://github.com/microsoft/TypeScript-wiki/blob/master/Using-the-Compiler-API.md#getting-the-dts-from-a-javascript-file), the [npm-dts](https://www.npmjs.com/package/npm-dts) library helps us bundle our types into one succinct file:
+
+```js
+const { Generator } = require('npm-dts')
+
+new Generator({
+  entry: 'src/index.ts',
+  output: 'dist/index.d.ts',
+}).generate()
+```
+
+## Publishing to NPM
+
+Before we publish to NPM, make sure your fields are filled out correctly and point to the proper files.
+
+```json filename=package.json
+{
+  "module": "dist/index.esm.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts"
+}
+```
+
+Now we're ready to publish our library!
+
+```bash
+yarn publish
+```
+
+```bash
+npm publish
+```
+
+## Conclusion
+
+We looked at how Esbuild provides a fast build system that we can use to compile and bundle TypeScript when developing libraries for NPM. In the future, I imagine we'll see a type checker written in a performant language like GO or Rust that can drastically speed up our workflows.
