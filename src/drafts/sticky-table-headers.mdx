@@ -1,0 +1,116 @@
+---
+title: The Complexities of Fixed Table Headers
+date: 2021-03-19
+summary: Fixed navigations in tables have notoriously been tricky. Even with new features like position sticky, there are still drawbacks. In this post, we'll look at handling fixed headers in a scrollable table component.
+image: ../images/bringing-swiftui-stacks-to-the-web.png
+tags:
+  - table
+  - position
+  - sticky
+  - react
+---
+
+import Disclaimer from '../components/Disclaimer.js'
+
+First, we're going to forgo the standard table markup and use divs with respective aria roles. Reasons for this are:
+
+- The default Table Layout is limiting so we want to use Flexbox.
+- Changing the display properties will break accessibility.
+- Since we have to add aria roles, we can use divs for a clean slate to build our styles upon, making our component easier to drop-in.
+
+<Disclaimer>
+  Note, if you are only dealing with simple styles, you most likely don't need
+  to do this. Always opt for native elements when you can!
+</Disclaimer>
+
+## Getting Started
+
+To start, this will be our basic markup:
+
+```jsx
+<div role="table">
+  <div role="rowgroup">
+    <div role="row">
+      <div role="columnheader">Name</div>
+      <div role="columnheader">Twitter</div>
+    </div>
+  </div>
+  <div role="rowgroup">
+    <div role="row">
+      <div role="cell">Travis</div>
+      <div role="cell">@souporserious</div>
+    </div>
+  </div>
+<div>
+```
+
+See the [W3 ARIA Guidelines](https://www.w3.org/TR/wai-aria-1.2/#table) to learn more about how these values work.
+
+If you've ever tried to add anything beyond simple styles to a table element, like overflow, you'll notice things don't seem to work quite as you'd expect.
+
+In their prime, Table Layouts were the only method for layout on the web. Fast forward to today, we have a clunky old API that doesn't hold up as well as newer methods like Flexbox and Grid. This is where ARIA roles shine and allow us to work around these quirks. However, this does come with drawbacks, we can no longer opt into things like auto width layouts and instead need to define explicit sizes for each column.
+
+```jsx
+function Table() {
+  return (
+    <div role="table">
+      <div role="rowgroup">
+        <div role="row">
+          <div role="columnheader">Name</div>
+          <div role="columnheader">Twitter</div>
+        </div>
+      </div>
+      <div role="rowgroup">
+        <div role="row">
+          <div role="cell">Travis</div>
+          <div role="cell">@souporserious</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+## Fixed Header
+
+We want a sticky table header relative to the viewport and the ability to scroll horizontally if there isn't enough room. Unfortunately, browsers don't give us a ton of control. All is well until we introduce overflow scroll, which might be likely if you're not relying on the full browser width.
+
+Since we use overflow scroll, this messes with our position sticky attribute. Until browsers give us better control of where we want to apply sticky positioning, we need to add event listeners for scroll and sync between the header and body.
+
+However, this does come with drawbacks, we can no longer opt into things like auto width layouts. This can be achieved by measuring each cell to determine the proper column width or in the future once there is better subgrid support Grid will be able to be used here. Since Grid uses a flat structure and rows/columns are implicit we cannot apply the proper aria roles.
+
+## Syncing scrollbars
+
+Enter the [useScrollSync](https://github.com/souporserious/use-scroll-sync) hook. This hook will sync the scroll positions of multiple refs:
+
+```jsx
+function Table({ columns, data }) {
+  const headerRef = React.useRef(null)
+  const bodyRef = React.useRef(null)
+
+  useScrollSync(headerRef, bodyRef)
+
+  return (
+    <div role="table">
+      <div ref={headerRef} role="rowgroup">
+        ...
+      </div>
+      <div ref={bodyRef} role="rowgroup">
+        ...
+      </div>
+    </div>
+  )
+}
+```
+
+This will listen for scroll events among both the header and body and synchronize them as best possible to make it feel like one scrolling experience.
+
+As an extra we'll add a little bit of CSS to hide the scrollbars:
+
+The way to fix this is usin
+
+And that's it, now our table component can utilize Flex layouts as well as fixing the header for larger tables that scroll.
+
+## Conclusion
+
+While default Tables will most certainly be difficult to style beyond anything basic. With newer layout methods like Flexbox and Grid we can save ourselves the hard tasks. In future posts we'll explore how to enhance accessibility for more complex use-cases like nested rows or using Grid.
