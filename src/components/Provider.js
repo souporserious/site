@@ -9,16 +9,6 @@ import { preToCodeBlock } from 'mdx-utils'
 import { nightOwl } from '../theme/night-owl'
 import { calculateLinesToHighlight } from '../utils'
 
-function Newsletter() {
-  return (
-    <a>
-      If you're curious about similar content or want to chat more about these
-      topics, sign up for my newsletter below to get notified when new content
-      comes out.
-    </a>
-  )
-}
-
 function CodeLink({ column, row, children }) {
   // const props = useCodeLink(column, row)
   return <a>{children}</a>

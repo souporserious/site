@@ -5,6 +5,7 @@ import { MDXRenderer } from 'gatsby-plugin-mdx'
 
 import { Layout } from '../components/Layout'
 import { Provider } from '../components/Provider'
+import { SubscriptionForm } from '../components/SubscriptionForm'
 import { fixOrphans } from '../utils'
 
 export default function Post(props) {
@@ -104,6 +105,7 @@ export default function Post(props) {
               ))}
             </ul>
           </div>
+          <SubscriptionForm />
           {(previous || next) && (
             <div
               css={{
