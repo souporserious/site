@@ -5,12 +5,14 @@ import React, { useState } from 'react'
 const FORM_URL = `https://app.convertkit.com/forms/2341637/subscriptions`
 
 export function SubscriptionForm() {
-  const [status, setStatus] = useState(null)
   const [email, setEmail] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [status, setStatus] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     const data = new FormData(e.target)
+    setSubmitting(true)
     try {
       const response = await fetch(FORM_URL, {
         method: 'post',
@@ -28,6 +30,11 @@ export function SubscriptionForm() {
     } catch (err) {
       setStatus('ERROR')
       console.log(err)
+    } finally {
+      setSubmitting(false)
+      setTimeout(() => {
+        setStatus(null)
+      }, 5000)
     }
   }
 
@@ -40,30 +47,55 @@ export function SubscriptionForm() {
     <div
       css={{
         display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
         padding: '1rem',
         backgroundColor: '#0e273e',
+        '@media screen and (max-width: 599px)': {
+          textAlign: 'center',
+          gridGap: '1rem',
+        },
+        '@media screen and (min-width: 600px)': {
+          gridTemplateColumns: '1fr 1fr',
+        },
       }}
     >
-      <div css={{ gridColumn: 1, gridRow: 1 }}>
+      <div
+        css={{
+          '@media screen and (min-width: 600px)': { gridColumn: 1, gridRow: 1 },
+        }}
+      >
         <h2 css={{ fontSize: '1rem', marginBottom: '0.5em' }}>
           Join My Newsletter
         </h2>
         <p css={{ fontSize: '0.75rem' }}>
-          Sign up to get notified first when new content comes out.
+          Sign up to get updates for my open source libraries or when new
+          content is published.
         </p>
       </div>
 
       <div
         css={{
-          gridColumn: 2,
-          gridRow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5em',
           alignSelf: 'center',
           justifySelf: 'center',
           textAlign: 'center',
+          '@media screen and (min-width: 600px)': {
+            gridColumn: 2,
+            gridRow: 1,
+          },
         }}
       >
-        <form action={FORM_URL} method="post" onSubmit={handleSubmit}>
+        <form
+          action={FORM_URL}
+          method="post"
+          onSubmit={handleSubmit}
+          css={{
+            display: 'grid',
+            gridTemplateColumns: '1fr auto',
+            gridGap: '0.25em',
+          }}
+        >
           <input
             type="email"
             aria-label="Your email"
@@ -73,35 +105,45 @@ export function SubscriptionForm() {
             value={email}
             required
             css={{
+              fontSize: '0.65rem',
               padding: '0.5em',
-              marginBottom: '0.5em',
-              marginRight: '0.5em',
-              fontSize: '0.5rem',
             }}
           />
           <button
             type="submit"
+            disabled={submitting || email.length === 0}
             css={{
-              padding: '0.55em',
-              fontSize: '0.5rem',
+              fontSize: '0.65rem',
+              padding: '0.5em',
               border: 'none',
               borderRadius: 3,
               backgroundColor: '#081623',
               color: 'white',
               fontWeight: 500,
               cursor: 'pointer',
+              '&[disabled]': {
+                opacity: 0.6,
+                cursor: 'not-allowed',
+              },
             }}
           >
-            Subscribe
+            {submitting ? 'Submitting' : 'Subscribe'}
           </button>
         </form>
         <p css={{ fontSize: '0.5em' }}>
-          No spam and you can unsubscribe at any time.
+          No spam <em>ever</em>, unsubscribe at any time.
         </p>
+        {status === 'SUCCESS' && (
+          <p css={{ fontSize: '0.5em', color: '#cbffb1' }}>
+            Success! Please confirm your subscription.
+          </p>
+        )}
+        {status === 'ERROR' && (
+          <p css={{ fontSize: '0.5em', color: '#ffcaca' }}>
+            Oops, Something went wrong! Try again.
+          </p>
+        )}
       </div>
-
-      {status === 'SUCCESS' && <p>Please go confirm your subscription!</p>}
-      {status === 'ERROR' && <p>Oops, Something went wrong! try again.</p>}
     </div>
   )
 }
