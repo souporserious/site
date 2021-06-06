@@ -1,6 +1,6 @@
 ---
 title: Bundling TypeScript With Esbuild for NPM
-date: 2021-06-03
+date: 2021-06-06
 summary: Compared to other build tools, Esbuild is a radically more performant bundler. This post will look at setting up a build script to compile TypeScript projects for NPM.
 image: ../images/bundling-typescript-with-esbuild-for-npm.png
 tags:
@@ -9,51 +9,41 @@ tags:
   - react
 ---
 
-Follow along at the repo below to see a working example:
-
-https://github.com/souporserious/bundling-typescript-with-esbuild-for-npm
+Follow along with the example repo [here](https://github.com/souporserious/bundling-typescript-with-esbuild-for-npm).
 
 ## Getting Started
 
 First, we'll install the library and set up our build script:
 
-<!-- add preference option for bundler -->
-
 ```bash
-yarn add esbuild typescript
+npm install esbuild typescript --save-dev
 ```
 
-```bash
-npm install esbuild typescript
-```
-
-```json filename=package.json
-{
-  "scripts": {
-    "build": "node build"
-  }
+```json filename=package hideNumbers
+"scripts": {
+  "build": "node build.js"
 }
 ```
 
-Esbuild will automatically detect we are using TypeScript and attempt to load a `tsconfig.json` file if available. Note that your `tsconfig.json` compiler options like `target` will take precedence over the `buildSync` options.
+```js filename=build
+const { build } = require('esbuild')
 
-```js filename=build.js
-const { buildSync } = require('esbuild')
-
-buildSync({
+build({
   entryPoints: ['src/index.ts'],
   outdir: 'dist',
   bundle: true,
 })
 ```
 
-An important option we need to set is the `external` property. This makes sure not to bundle all of our dependencies since we are publishing this library to NPM. Convinently enough, we can use our `package.json` file as a source of truth:
+Esbuild will automatically detect that we're using TypeScript and attempt to load a `tsconfig.json` file if available. Note that any compiler options set in `tsconfig.json` will take precedence over `build` options.
 
-```js {2,8} filename=build.js
-const { buildSync } = require('esbuild')
+An important option we need to set is the `external` property. Since we are publishing this library to NPM we'll want to exclude any of our dependencies from the final bundle. Convinently enough, we can use our `package.json` file as a source of truth:
+
+```js {2,8}
+const { build } = require('esbuild')
 const { dependencies, peerDependencies } = require('./package.json')
 
-buildSync({
+build({
   entryPoints: ['src/index.ts'],
   outdir: 'dist',
   bundle: true,
@@ -64,10 +54,6 @@ buildSync({
 Now, if we run our script, we should see our built files in a `dist` directory:
 
 ```bash
-yarn build
-```
-
-```bash
 npm run build
 ```
 
@@ -75,7 +61,7 @@ npm run build
 
 When bundling libraries for NPM, it's good practice to build multiple files for different browser and bundler formats. We can do this easily by pulling out shared options and passing them into any number of different builds we want to provide. By default, `format` is set to [iife](https://esbuild.github.io/api/#format-iife), which bundles for a browser environment. Let's add a format for ESM users:
 
-```js
+```js filename=build
 const { build } = require('esbuild')
 const { dependencies, peerDependencies } = require('./package.json')
 
@@ -99,11 +85,13 @@ build({
 
 ## Type Definitions
 
-Since Esbuild can only bundle our code, we still need to generate definition files. This will allow library consumers to utilize the types we've written.
+Since Esbuild can only bundle our code, we still need to generate definition files. This will allow library consumers to utilize the types we've written. While it's relatively simple to emit multiple declaration files [using TypeScript directly](https://github.com/microsoft/TypeScript-wiki/blob/master/Using-the-Compiler-API.md#getting-the-dts-from-a-javascript-file), the [npm-dts](https://www.npmjs.com/package/npm-dts) library helps us bundle our types into one succinct file:
 
-While it's relatively simple to emit multiple declaration files [using TypeScript directly](https://github.com/microsoft/TypeScript-wiki/blob/master/Using-the-Compiler-API.md#getting-the-dts-from-a-javascript-file), the [npm-dts](https://www.npmjs.com/package/npm-dts) library helps us bundle our types into one succinct file:
+```bash
+npm install npm-dts
+```
 
-```js
+```js filename=build
 const { Generator } = require('npm-dts')
 
 new Generator({
@@ -116,7 +104,7 @@ new Generator({
 
 Make sure the fields in your `package.json` file are filled out correctly and point to the proper files we've created:
 
-```json filename=package.json
+```json filename=package hideNumbers
 {
   "module": "dist/index.esm.js",
   "main": "dist/index.js",
@@ -125,10 +113,6 @@ Make sure the fields in your `package.json` file are filled out correctly and po
 ```
 
 Now we're ready to publish our library! 🎉
-
-```bash
-yarn publish
-```
 
 ```bash
 npm publish
