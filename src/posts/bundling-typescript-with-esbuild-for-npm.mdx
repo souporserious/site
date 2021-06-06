@@ -88,7 +88,7 @@ build({
 Since Esbuild can only bundle our code, we still need to generate definition files. This will allow library consumers to utilize the types we've written. While it's relatively simple to emit multiple declaration files [using TypeScript directly](https://github.com/microsoft/TypeScript-wiki/blob/master/Using-the-Compiler-API.md#getting-the-dts-from-a-javascript-file), the [npm-dts](https://www.npmjs.com/package/npm-dts) library helps us bundle our types into one succinct file:
 
 ```bash
-npm install npm-dts
+npm install npm-dts --save-dev
 ```
 
 ```js filename=build
