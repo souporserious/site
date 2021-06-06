@@ -1,5 +1,6 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/core'
+import { useState } from 'react'
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live'
 import Highlight, { defaultProps } from 'prism-react-renderer'
 import { MDXProvider } from '@mdx-js/react'
@@ -7,6 +8,16 @@ import { preToCodeBlock } from 'mdx-utils'
 
 import { nightOwl } from '../theme/night-owl'
 import { calculateLinesToHighlight } from '../utils'
+
+function Newsletter() {
+  return (
+    <a>
+      If you're curious about similar content or want to chat more about these
+      topics, sign up for my newsletter below to get notified when new content
+      comes out.
+    </a>
+  )
+}
 
 function CodeLink({ column, row, children }) {
   // const props = useCodeLink(column, row)
@@ -89,77 +100,160 @@ function LiveCode({ codeString }) {
 }
 
 function SyntaxHighligher({ codeString, language, metastring }) {
-  const shouldHighlightLine = calculateLinesToHighlight(metastring)
+  const linesToHighlight = metastring
+    ?.split(' ')
+    .find((part) => part.startsWith('{') && part.endsWith('}'))
+  const filename = metastring
+    ?.split(' ')
+    .find((part) => part.startsWith('filename'))
+    ?.split('=')[1]
+  const hideNumbers =
+    metastring?.split(' ').find((part) => part === 'hideNumbers') ||
+    language === 'bash'
+  const shouldHighlightLine = calculateLinesToHighlight(linesToHighlight)
+  const [justCopied, setJustCopied] = useState(false)
   return (
-    <Highlight
-      {...defaultProps}
-      code={codeString}
-      language={language}
-      theme={nightOwl}
+    <div
+      css={{
+        display: 'grid',
+        gridColumn: '1 / -1',
+        ':hover button': {
+          opacity: 1,
+        },
+      }}
     >
-      {({ className, style, tokens, getLineProps, getTokenProps }) => (
-        <div
-          css={{
-            display: 'grid',
-            gridTemplateColumns: '1fr minmax(auto, 32em) 1fr',
-            gridColumn: '1/-1',
-            maxWidth: '100%',
-            padding: '1em 0',
-            backgroundColor: nightOwl.plain.backgroundColor,
-            overflow: 'auto',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          <pre
-            className={className}
+      <Highlight
+        {...defaultProps}
+        code={codeString}
+        language={language}
+        theme={nightOwl}
+      >
+        {({ className, style, tokens, getLineProps, getTokenProps }) => (
+          <div
             css={{
-              gridColumn: '2/3',
-              fontFamily: `Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace`,
-              fontSize: '0.6em',
+              display: 'grid',
+              gridTemplateColumns: '1fr minmax(auto, 32em) 1fr',
+              gridArea: '1 / 1 / 1 / 1',
+              maxWidth: '100%',
+              padding: filename ? '0 0 1em' : '1em 0',
+              backgroundColor: nightOwl.plain.backgroundColor,
+              overflow: 'auto',
+              WebkitOverflowScrolling: 'touch',
             }}
-            style={style}
           >
-            {tokens.map((line, index) => (
+            {filename && (
               <div
-                {...getLineProps({ line, key: index })}
                 css={{
+                  gridColumn: '2/3',
+                  gridRow: 1,
                   display: 'flex',
-                  backgroundColor: shouldHighlightLine(index)
-                    ? 'hsl(209, 58%, 14%)'
-                    : undefined,
+                  padding: '1em 0 0.5em',
                 }}
               >
                 <span
                   css={{
-                    display: 'inline-block',
-                    width: '2ch',
-                    padding: '0 0.5ch',
-                    marginRight: '1ch',
-                    textAlign: 'right',
-                    borderLeft: '0.25em solid',
-                    borderLeftColor: shouldHighlightLine(index)
-                      ? 'rgb(173, 219, 103)'
-                      : 'transparent',
-                    backgroundColor: shouldHighlightLine(index)
-                      ? 'hsl(209, 58%, 14%)'
-                      : nightOwl.plain.backgroundColor,
-                    color: 'rgba(255,255,255,0.46)',
-                    userSelect: 'none',
-                    position: 'sticky',
-                    left: 0,
+                    fontSize: '0.65rem',
+                    padding: '0.25em 0.35em',
+                    marginLeft: '-0.35em',
+                    borderRadius: '0.25em',
+                    backgroundColor: '#043a6d',
                   }}
                 >
-                  {index + 1}
+                  {filename}.{language}
                 </span>
-                {line.map((token, key) => (
-                  <span {...getTokenProps({ token, key })} />
-                ))}
               </div>
-            ))}
-          </pre>
-        </div>
-      )}
-    </Highlight>
+            )}
+            <pre
+              className={className}
+              css={{
+                gridColumn: '2/3',
+                gridRow: filename ? 2 : 1,
+                fontFamily: `Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace`,
+                fontSize: '0.6em',
+              }}
+              style={style}
+            >
+              {tokens.map((line, index) => (
+                <div
+                  {...getLineProps({ line, key: index })}
+                  css={{
+                    display: 'flex',
+                    backgroundColor: shouldHighlightLine(index)
+                      ? 'hsl(209, 58%, 14%)'
+                      : undefined,
+                  }}
+                >
+                  <span
+                    css={{
+                      display: 'inline-block',
+                      width: '2ch',
+                      padding: '0 0.5ch',
+                      marginRight: '1ch',
+                      textAlign: 'right',
+                      borderLeft: '0.25em solid',
+                      borderLeftColor: shouldHighlightLine(index)
+                        ? 'rgb(173, 219, 103)'
+                        : 'transparent',
+                      backgroundColor: shouldHighlightLine(index)
+                        ? 'hsl(209, 58%, 14%)'
+                        : nightOwl.plain.backgroundColor,
+                      color: 'rgba(255,255,255,0.46)',
+                      userSelect: 'none',
+                      position: 'sticky',
+                      left: 0,
+                      opacity: hideNumbers ? 0 : 1,
+                      '@media screen and (min-width: 600px)': {
+                        marginLeft: '-4.5ch',
+                      },
+                    }}
+                  >
+                    {index + 1}
+                  </span>
+                  {line.map((token, key) => (
+                    <span {...getTokenProps({ token, key })} />
+                  ))}
+                </div>
+              ))}
+            </pre>
+          </div>
+        )}
+      </Highlight>
+      <div
+        css={{
+          gridArea: '1 / 1 / 1 / 1',
+          display: 'grid',
+          gridTemplateColumns: '1fr minmax(auto, 32em) 1fr',
+          position: 'relative',
+        }}
+      >
+        <button
+          css={{
+            justifySelf: 'end',
+            gridColumn: 2,
+            position: 'absolute',
+            top: '1em',
+            right: '1em',
+            padding: '0.5em',
+            border: 'none',
+            borderRadius: '0.15em',
+            backgroundColor: 'transparent',
+            color: '#afd6fb',
+            opacity: 0,
+            ':hover': {
+              backgroundColor: '#ffffff14',
+            },
+          }}
+          onClick={() => {
+            navigator.clipboard.writeText(codeString)
+            setJustCopied(true)
+            setTimeout(() => {
+              setJustCopied(false)
+            }, 1000)
+          }}
+          children={justCopied ? 'Copied' : 'Copy'}
+        />
+      </div>
+    </div>
   )
 }
 
