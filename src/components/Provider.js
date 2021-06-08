@@ -107,6 +107,7 @@ function SyntaxHighligher({ codeString, language, metastring }) {
       css={{
         display: 'grid',
         gridColumn: '1 / -1',
+        position: 'relative',
         ':hover button': {
           opacity: 1,
         },
@@ -135,7 +136,6 @@ function SyntaxHighligher({ codeString, language, metastring }) {
               <div
                 css={{
                   gridColumn: '2/3',
-                  gridRow: 1,
                   display: 'flex',
                   padding: '1em 0 0.5em',
                 }}
@@ -157,7 +157,6 @@ function SyntaxHighligher({ codeString, language, metastring }) {
               className={className}
               css={{
                 gridColumn: '2/3',
-                gridRow: filename ? 2 : 1,
                 fontFamily: `Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace`,
                 fontSize: '0.6em',
               }}
@@ -177,6 +176,7 @@ function SyntaxHighligher({ codeString, language, metastring }) {
                     css={{
                       display: 'inline-block',
                       width: '2ch',
+                      flexShrink: 0,
                       padding: '0 0.5ch',
                       marginRight: '1ch',
                       textAlign: 'right',
@@ -208,41 +208,32 @@ function SyntaxHighligher({ codeString, language, metastring }) {
           </div>
         )}
       </Highlight>
-      <div
+      <button
         css={{
-          gridArea: '1 / 1 / 1 / 1',
-          display: 'grid',
-          gridTemplateColumns: '1fr minmax(auto, 32em) 1fr',
-          position: 'relative',
+          justifySelf: 'end',
+          gridColumn: 2,
+          position: 'absolute',
+          top: '1em',
+          right: '1em',
+          padding: '0.5em',
+          border: 'none',
+          borderRadius: '0.15em',
+          backgroundColor: 'transparent',
+          color: '#afd6fb',
+          opacity: 0,
+          ':hover': {
+            backgroundColor: '#ffffff14',
+          },
         }}
-      >
-        <button
-          css={{
-            justifySelf: 'end',
-            gridColumn: 2,
-            position: 'absolute',
-            top: '1em',
-            right: '1em',
-            padding: '0.5em',
-            border: 'none',
-            borderRadius: '0.15em',
-            backgroundColor: 'transparent',
-            color: '#afd6fb',
-            opacity: 0,
-            ':hover': {
-              backgroundColor: '#ffffff14',
-            },
-          }}
-          onClick={() => {
-            navigator.clipboard.writeText(codeString)
-            setJustCopied(true)
-            setTimeout(() => {
-              setJustCopied(false)
-            }, 1000)
-          }}
-          children={justCopied ? 'Copied' : 'Copy'}
-        />
-      </div>
+        onClick={() => {
+          navigator.clipboard.writeText(codeString)
+          setJustCopied(true)
+          setTimeout(() => {
+            setJustCopied(false)
+          }, 1000)
+        }}
+        children={justCopied ? 'Copied' : 'Copy'}
+      />
     </div>
   )
 }
