@@ -1,0 +1,89 @@
+---
+title: Better library DX using JSDoc links
+date: 2021-06-08
+summary: Documentation can often be hard to find. Getting lost searching for links to file issues or view examples is tedious. In this post, we look at automating helpful, quick links using JSDoc and Babel.
+image: ../images/better-library-dx-using-jsdoc-links.png
+tags:
+  - javascript
+  - documentation
+  - jsdoc
+---
+
+Documentation can be hard to find. Getting lost searching for links to file issues or view examples is tedious. In this post, we look at automating helpful, quick links using JSDoc.
+
+[JSDoc](https://jsdoc.app/) is a format for annotating code that adds rich meta information. In a simple example, we can add a description for our function along with parameter and return types:
+
+```js
+/**
+ * Get the width for a single line of text
+ * @param {String} text - the string of text to be measured
+ * @return {Number} the width of the text passed in
+ */
+function getTextWidth(text) {
+  return context.measureText(text).width
+}
+```
+
+These annotations are used to generate documentation sites automatically. Even IDE's like [VS Code](https://code.visualstudio.com/) can utilize this information as you're typing to provide the same rich documentation inline.
+
+## Adding Helpful Links
+
+We can take things a step further by adding additional comments in our build step using Babel. If you'd like to follow along, there's a complete example [here](https://github.com/souporserious/better-library-dx-using-jsdoc-links) using the utility above.
+
+First, we'll start by creating a simple Babel plugin with a visitor for all function declarations and get its leading comment and the position we want to insert the new comment at. We'll determine this position by finding the first JSDoc tag (the `@` symbol):
+
+```js
+module.exports = function () {
+  return {
+    name: 'add-comment',
+    visitor: {
+      FunctionDeclaration(path, state) {
+        const [leadingComment] = path.node.leadingComments
+        if (leadingComment) {
+          const lines = leadingComment.value.split('\n')
+          const endIndex = lines.findIndex((line) => line.startsWith(' * @'))
+        }
+      },
+    },
+  }
+}
+```
+
+Note, you can tailor this further to visit additional AST nodes like classes or JSX components. You would also want a better comment parser as this example is oversimplified.
+
+Now we can work on sourcing additional helpful information. Similar to the [last article](https://souporserious.com/bundling-typescript-with-esbuild-for-npm/#getting-started), we can use our `package.json` as a source of truth for the repository URL. With this URL and Babel's state of the current file, we can generate a direct link to this function's GitHub source code:
+
+```js {1,8,13-21}
+const { repository } = require('./package.json')
+
+module.exports = function () {
+  return {
+    name: 'add-comment',
+    visitor: {
+      FunctionDeclaration(path, state) {
+        const filePath = state.filename.split('src')[1]
+        const [leadingComment] = path.node.leadingComments
+        if (leadingComment) {
+          const lines = leadingComment.value.split('\n')
+          const endIndex = lines.findIndex((line) => line.startsWith(' * @'))
+          leadingComment.value = lines
+            .slice(0, endIndex)
+            .concat([
+              `* `,
+              `* [Edit on GitHub](${repository.url}blob/main${filePath})`,
+              `* `,
+            ])
+            .concat(lines.slice(endIndex, lines.length))
+            .join('\n')
+        }
+      },
+    },
+  }
+}
+```
+
+And that's it! As a fun exercise, try using additional information from Babel to link directly to the line number (hint: the returned path should be helpful for this 😉).
+
+## Conclusion
+
+We looked at how adding simple comments with some meta-information about our functions can significantly increase code usability and give developers the proper avenues for learning about our library code. Easy access to documentation makes it easier to report bugs, view examples, and get developers into the pit of success sooner!
