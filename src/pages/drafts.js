@@ -39,7 +39,7 @@ export default function Drafts({ data }) {
 export const query = graphql`
   {
     posts: allMdx(
-      filter: { fields: { slug: { ne: null, regex: "/drafts/" } } }
+      filter: { fields: { isDraft: { eq: true } } }
       sort: { fields: frontmatter___date, order: DESC }
     ) {
       nodes {

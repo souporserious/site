@@ -11,13 +11,18 @@ exports.onCreateNode = async ({ node, getNode, actions }) => {
       createNodeField({
         node,
         name: `slug`,
-        value: source === 'drafts' ? `/drafts${slug}` : slug,
+        value: slug,
+      })
+      createNodeField({
+        node,
+        name: `isDraft`,
+        value: source === 'drafts',
       })
     }
   }
 }
 
-exports.createPages = async ({ graphql, actions, reporter }) => {
+exports.createPages = async ({ graphql, actions, reporter, getNode }) => {
   const result = await graphql(`
     query {
       allMdx(
@@ -28,6 +33,7 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
           id
           fields {
             slug
+            isDraft
           }
         }
       }
@@ -42,8 +48,8 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
   const published = []
   const drafts = []
 
-  result.data.allMdx.nodes.forEach(node => {
-    if (node.fields.slug.includes('drafts')) {
+  result.data.allMdx.nodes.forEach((node) => {
+    if (node.fields.isDraft) {
       drafts.push(node)
     } else {
       published.push(node)
@@ -64,7 +70,7 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
     })
   })
 
-  drafts.forEach(node => {
+  drafts.forEach((node) => {
     actions.createPage({
       path: node.fields.slug,
       component: postTemplate,
