@@ -51,7 +51,7 @@ export default function Index({ data }) {
 export const query = graphql`
   {
     posts: allMdx(
-      filter: { fields: { slug: { ne: null, regex: "/^((?!drafts).)*$/" } } }
+      filter: { fields: { slug: { ne: null }, isDraft: { eq: false } } }
       sort: { fields: frontmatter___date, order: DESC }
     ) {
       nodes {
