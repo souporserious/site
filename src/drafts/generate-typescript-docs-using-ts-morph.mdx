@@ -1,0 +1,111 @@
+---
+title: Generate TypeScript Docs Using TS Morph
+date: 2021-06-15
+summary: TypeScript gives us rich information about how our code should work. In this post, we'll look at generating documentation using TS Morph, specifically for functional React components.
+tags:
+  - docs
+  - react
+  - components
+---
+
+A handful of tools for reading types exist in the wild like [react-docgen](https://github.com/reactjs/react-docgen) and [react-docgen-typescript](https://github.com/styleguidist/react-docgen-typescript). These tools work well for the most part, but are limited in that building a library to parse all of the possible combinations TypeScript offers is hard. Today, we're going to look at using a TypeScript tool called TS Morph to see how far we can get reading types on our own. Follow along at the repo [here]() to see a working example.
+
+## Getting Started
+
+We'll start by defining a `project` and reading in an example file:
+
+```ts filename=index
+const project = new Project({
+  tsConfigFilePath: path.resolve(process.cwd(), 'tsconfig.json'),
+})
+const source = project.getSourceFile(path.resolve(process.cwd(), 'Example.tsx'))
+```
+
+```tsx filename=Example
+type ExampleProps = {
+  /** The title of the example. */
+  title?: string
+
+  /** The color of the text. */
+  color?: string
+
+  /** The horizontal alignment of the text. */
+  align?: 'left' | 'center' | 'right'
+}
+
+export function Example({ title, color, position }: ExampleProps) {
+  return (
+    <div
+      style={{
+        color,
+        textAlign: position,
+      }}
+    >
+      {title}
+    </div>
+  )
+}
+```
+
+## Querying Functional Components
+
+We can easily query all of the functions in our file using the `getFunctions` method. In our case we're only interested in particular functions which are exported and start with a captial letter since this is how we identify elements in JSX:
+
+```ts
+const components = source.getFunctions().filter((declaration) => {
+  const name = declaration.getName()
+  return name === name.toUpperCase() && declaration.hasExportKeyword()
+})
+```
+
+## Reading Prop Types
+
+Now that we have all of the functions we care about, we can start to iterate through their types to gather the information we want to display:
+
+```ts
+const componentMap = new Map()
+components.forEach((component) => {
+  const [props] = component.getParameters()
+  const type = props.getType()
+  componentMap.add(type.getText(), type.getProperties())
+})
+```
+
+Here we're using the `getParameters` helper to gather the function's arguments then pulling off the first argument which in React's case are the props of a component. Next, we get the type and its properties that are associated with the component props.
+
+```ts
+components.forEach((declaration) => {
+  const [props] = declaration.getParameters()
+  const type = props.getType()
+  const typeProps = type.getProperties().map((prop) => ({
+    name: prop.getName(),
+    type: prop.getTypeAtLocation(declaration).getText(),
+  }))
+})
+```
+
+We only care to support one comment range for now.
+
+```ts
+components.forEach((declaration) => {
+  const [props] = declaration.getParameters()
+  const type = props.getType()
+  const typeProps = type.getProperties().map((prop) => {
+    const [range] = ts.getLeadingCommentRanges(
+      source.getFullText(),
+      prop.getValueDeclaration().getFullStart()
+    )
+    return {
+      name: prop.getName(),
+      type: prop.getTypeAtLocation(declaration).getText(),
+      comment: source.getFullText().slice(range.pos, range.end),
+    }
+  })
+})
+```
+
+Huge thanks to this [StackOverflow question](https://stackoverflow.com/questions/47429792/is-it-possible-to-get-comments-as-nodes-in-the-ast-using-the-typescript-compiler) for guiding me how to handle comments.
+
+## Conclusion
+
+There's still a lot more we'd need to handle here to make this production ready like checking if the function is wrapped in a helper like `React.forwardRef` or determine if the type is being imported from another file among many other edge cases. I'm still learning about this library, but am excited for the possibilities it brings! In a future post, we'll look at how we can statically analyze design tokens using a similar method.
