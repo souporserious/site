@@ -102,21 +102,21 @@ const docs = components.map((declaration) => {
 })
 ```
 
-While the name and prop types are helpful, it would be nice to pull in the comments we've associated with each type. Thanks to this [Stack Overflow answer](https://stackoverflow.com/questions/47429792/is-it-possible-to-get-comments-as-nodes-in-the-ast-using-the-typescript-compiler), we can use `getLeadingCommentRanges` library to read the first comment:
+## Reading Comments
 
-```ts
+While the name and prop types are helpful, it would be nice to pull in the comments we've associated with each type as well. We can do this using `getLeadingCommentRanges` to read the first comment:
+
+```ts {5-6,10}
 const docs = components.map((declaration) => {
   const [props] = declaration.getParameters()
   const type = props.getType()
-  const typeProps = type.getProperties().map((prop) => {
-    const [range] = ts.getLeadingCommentRanges(
-      source.getFullText(),
-      prop.getValueDeclaration().getFullStart()
-    )
+  const typeProps = type.getProperties().map((propDeclaration) => {
+    const [propDeclaration] = prop.getDeclarations()
+    const [commentRange] = propDeclaration.getLeadingCommentRanges()
     return {
       name: prop.getName(),
       type: prop.getTypeAtLocation(declaration).getText(),
-      comment: source.getFullText().slice(range.pos, range.end),
+      comment: commentRange.getText(),
     }
   })
   return {
@@ -126,14 +126,10 @@ const docs = components.map((declaration) => {
 })
 ```
 
-<Disclaimer>
-
-Note, we use the `ts` library exported from TS Morph to access `getLeadingCommentRanges`. There seems to be a [first-class way to get comments](https://ts-morph.com/details/comments#comment-ranges) from a `Node`, but props return a `Symbol`, so I'm not sure how to use this API and will update this if I figure it out.
-
-</Disclaimer>
+Huge thanks to David for the [help](https://twitter.com/DavidSherret/status/1405184621671747592) here!
 
 That's it for today! I encourage you to further play around with this example and see if you can query the default value for each type.
 
 ## Conclusion
 
-There is still a lot more we'd need to handle here to make this production-ready, like checking if the function is wrapped in `React.forwardRef` or determine if the type is imported from another file, among many other edge cases. I'm still learning about this library, but I am excited about the possibilities it brings! I particularly enjoy that the API feels friendly and makes static analysis a lot easier.
+There is still a lot more we'd need to do for this to be production-ready, like checking if the function is wrapped in `React.forwardRef`, determine if the type is imported from another file, among many other edge cases. I'm still learning about this library, but I am excited about the possibilities it brings! I particularly enjoy that the API feels friendly and makes static analysis a lot easier.
