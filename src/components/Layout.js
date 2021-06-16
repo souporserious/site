@@ -53,7 +53,7 @@ export function Layout({ title, description, noIndex, image, ...props }) {
           },
           code: {
             margin: '-0.1em',
-            padding: '0.1em',
+            padding: '0 0.1em',
             borderRadius: 5,
             backgroundColor: 'rgb(8, 25, 41)',
             color: 'rgb(173, 219, 103)',

@@ -10,7 +10,11 @@ tags:
   - components
 ---
 
-A handful of tools for reading types exist in the wild like [react-docgen](https://github.com/reactjs/react-docgen) and [react-docgen-typescript](https://github.com/styleguidist/react-docgen-typescript). These tools work well for the most part, but are limited in the features they offer. Building a library to parse all of the possible combinations TypeScript offers is hard. Today, we're going to look at using a tool called TS Morph to see how far we can get reading types on our own. Follow along at the repo [here]() to see a working example.
+import Disclaimer from '../components/Disclaimer'
+
+A handful of tools for reading types exist in the wild like [react-docgen](https://github.com/reactjs/react-docgen) and [react-docgen-typescript](https://github.com/styleguidist/react-docgen-typescript). These tools work well for the most part but are limited in the features they offer. Building a library to parse all of the possible combinations TypeScript offers is no easy task. Today, we're going to look at using a tool called [TS Morph](https://github.com/dsherret/ts-morph) to see how far we can get reading types with a strong set of utilities.
+
+Follow along at the repo [here](https://github.com/souporserious/generate-typescript-docs-using-ts-morph) to see a working example. The author of TS Morph has also provided a fantastic [AST viewer](https://ts-ast-viewer.com/#code/C4TwDgpgBAogHgQwLZgDYQAoCcD2YDOUAvFAN4BQUUA9AFRQAqAFtMAJbDpQ4BmUwLKBEQp0AOii1qlfh3QAuKPmBY2AOwDm5GXUaCAxjlQ4s3PgNbDgEqTMPGsAfkXLVm7VV3NoTE2wBeOGrACKhQoWwaakgQwWb8gsBWNtJUEVHOUADk6DzAWVAAPtn6sUlYBcVZqhpM+eQAvtrCYCbAUDwArmr67EGwImgQABSkspwQADRQ9ibT6WpQDYrwyEPYePgAlGQyWBDAnViLap2oqI3kQA) that helps show what we can query.
 
 ## Getting Started
 
@@ -58,7 +62,7 @@ export function Example({ title, color, align }: ExampleProps) {
 
 ## Querying Functional Components
 
-Now that our project is set up, we can easily query all of the functions in our file using the `getFunctions` method on `source`. In our case, we're only interested in particular functions which are exported and start with a captial letter since this is how components are defined in JSX:
+Now that our project is set up, we can query all of the functions in our file using the `getFunctions` method on `source`. In our case, we're only interested in particular functions which are exported and start with a captial letter since this is how components are defined in JSX:
 
 ```ts
 const components = source.getFunctions().filter((declaration) => {
@@ -73,13 +77,24 @@ const components = source.getFunctions().filter((declaration) => {
 Now that we have all of the functions we care about, we can start to iterate through their types to gather the information we want to display:
 
 ```ts
-components.forEach((declaration) => {
+const docs = components.forEach((declaration) => {
   const [props] = declaration.getParameters()
   const type = props.getType()
-  const typeProps = type.getProperties().map((prop) => ({
-    name: prop.getName(),
-    type: prop.getTypeAtLocation(declaration).getText(),
-  }))
+})
+```
+
+Here we're using the `getParameters` helper to read the function's arguments. We pull off the first argument, which in React's case is the component's props. Next, we get the type and its properties that are associated with the component props. We'll use `getTypeAtLocation` and pass it the declaration to get each prop type:
+
+```ts {4-13}
+const docs = components.map((declaration) => {
+  const [props] = declaration.getParameters()
+  const type = props.getType()
+  const typeProps = type.getProperties().map((prop) => {
+    return {
+      name: prop.getName(),
+      type: prop.getTypeAtLocation(declaration).getText(),
+    }
+  })
   return {
     name: declaration.getName(),
     typeProps,
@@ -87,9 +102,7 @@ components.forEach((declaration) => {
 })
 ```
 
-Here we're using the `getParameters` helper to gather the function's arguments then pulling off the first argument which in React's case are the props of a component. Next, we get the type and its properties that are associated with the component props.
-
-We only care to support one comment range for now.
+While the name and prop types are helpful, it would be nice to pull in the comments we've associated with each type. Thanks to this [Stack Overflow answer](https://stackoverflow.com/questions/47429792/is-it-possible-to-get-comments-as-nodes-in-the-ast-using-the-typescript-compiler), we can use `getLeadingCommentRanges` library to read the first comment:
 
 ```ts
 const docs = components.map((declaration) => {
@@ -113,8 +126,14 @@ const docs = components.map((declaration) => {
 })
 ```
 
-Huge thanks to this [StackOverflow question](https://stackoverflow.com/questions/47429792/is-it-possible-to-get-comments-as-nodes-in-the-ast-using-the-typescript-compiler) for guiding me how to handle comments.
+<Disclaimer>
+
+Note, we use the `ts` library exported from TS Morph to access `getLeadingCommentRanges`. There seems to be a [first-class way to get comments](https://ts-morph.com/details/comments#comment-ranges) from a `Node`, but props return a `Symbol`, so I'm not sure how to use this API.
+
+</Disclaimer>
+
+That's it for today! I encourage you to further play around with this example and see if you can query the default value for each type.
 
 ## Conclusion
 
-There's still a lot more we'd need to handle here to make this production ready like checking if the function is wrapped in a helper like `React.forwardRef` or determine if the type is being imported from another file among many other edge cases. I'm still learning about this library, but am excited for the possibilities it brings! I particularlly enjoy that the API feels friendly and makes flexible static analysis a lot easier. In a future post, we'll look at how we can statically analyze design tokens using a similar method.
+There is still a lot more we'd need to handle here to make this production-ready, like checking if the function is wrapped in `React.forwardRef` or determine if the type is imported from another file, among many other edge cases. I'm still learning about this library, but I am excited about the possibilities it brings! I particularly enjoy that the API feels friendly and makes static analysis a lot easier.
