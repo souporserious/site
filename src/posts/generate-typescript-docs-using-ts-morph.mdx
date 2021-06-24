@@ -110,7 +110,7 @@ While the name and prop types are helpful, it would be nice to pull in the comme
 const docs = components.map((declaration) => {
   const [props] = declaration.getParameters()
   const type = props.getType()
-  const typeProps = type.getProperties().map((propDeclaration) => {
+  const typeProps = type.getProperties().map((prop) => {
     const [propDeclaration] = prop.getDeclarations()
     const [commentRange] = propDeclaration.getLeadingCommentRanges()
     return {
