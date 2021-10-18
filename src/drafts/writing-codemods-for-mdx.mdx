@@ -1,0 +1,105 @@
+---
+title: Codemods for MDX
+date: 2021-07-26
+summary: Codebases evolve and documentation inevitably changes. In this post, we look at using a simple Node script to rewrite docs and example code from Storybooks into a custom format.
+tags:
+  - javascript
+  - documentation
+  - jsdoc
+---
+
+If you've never heard of a codemod, it basically means taking a portion of code and changing its contents, usually by way of [AST](https://en.wikipedia.org/wiki/Abstract_syntax_tree) transformation. We can do this for any code that has an AST, including Markdown and MDX.
+
+The burden of maintaing docs can start to sink in once you have many docs scattered throughout your codebase. This is where codemods shine, instead of trying to write a fancy regex search and replace we can write some simple JavaScript operations and rewrite our file however we desire.
+
+## Unified
+
+We'll start by introducing the [Unified](https://unifiedjs.com/) library. This library will be responsible for taking in our MD(X) content allowing us to transform it and turn it back into either format. Since we want to rewrite MDX we can start with their [boilerplate](https://unifiedjs.com/explore/package/remark-mdx/#use) and make some modifications:
+
+```js
+import glob from 'fast-glob'
+import fs from 'fs'
+import path from 'path'
+import frontmatter from 'remark-frontmatter'
+import mdx from 'remark-mdx'
+import markdown from 'remark-parse'
+import stringify from 'remark-stringify'
+import { unified } from 'unified'
+
+const processor = unified()
+  .use(markdown)
+  .use(stringify)
+  .use(mdx)
+  .use(frontmatter)
+
+async function program() {
+  const paths = await glob(['packages/library/**/*.stories.mdx'])
+
+  paths.forEach((filePath) => {
+    const tree = processor.parse(fs.readFileSync(filePath))
+    let category = null
+    let parsedMarkdown = processor.stringify({
+      type: 'root',
+      children: tree.children.reduce((children, child) => {
+        const isImport = child.type === 'mdxjsEsm'
+        const isStorybooksComponent =
+          child.type === 'mdxJsxFlowElement' &&
+          ['Meta', 'Props', 'ArgsTable'].includes(child.name)
+        const isPropsHeading =
+          child.type === 'heading' &&
+          child.children.some((child) => child.value === 'Props')
+
+        if (child.name === 'Meta') {
+          const title = child.attributes.find(
+            (child) => child.name === 'title'
+          ).value
+          category = title.split('/')[0]
+        }
+
+        // Filter out elements we no longer need
+        if (isImport || isStorybooksComponent || isPropsHeading) {
+          return children
+        }
+
+        return [...children, child]
+      }, []),
+    })
+
+    parsedMarkdown = `
+---
+category: ${category}
+---
+${parsedMarkdown}
+      `.trimStart()
+
+    const basePath = path.dirname(filePath)
+    fs.writeFileSync(
+      path.resolve(
+        basePath.includes('stories')
+          ? basePath.replace('/stories', '')
+          : basePath,
+        'README.mdx'
+      ),
+      parsedMarkdown
+    )
+  })
+}
+
+program()
+```
+
+## Finding docs
+
+## Rewriting
+
+### Removing preceding heading
+
+This is where the power of reducers shine. Since we need to not only include the props component we know there is a heading preceding the component so we can remove that if that's the case.
+
+We can even be extra cautious here and check to make sure it's a heading preceding and not some other content. You can also throw console statements here or inject a greppable string to help identify and fix outlying cases.
+
+### Inserting Frontmatter
+
+Now you might be asking what is the syntax for frontmatter? You can view the AST Explorer to easily find this out by writing out some example code.
+
+## Conclusion
