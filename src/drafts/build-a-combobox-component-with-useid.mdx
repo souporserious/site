@@ -1,0 +1,64 @@
+---
+title: Build a ComboBox Component with useId
+date: 2021-10-21
+summary: React 18 brings us a new useId hook that will be useful for accessibility. In this post, we build a ComboBox component and learn how to take advantage of this new hook.
+image: ../images/better-library-dx-using-jsdoc-links.png
+tags:
+  - javascript
+  - documentation
+  - jsdoc
+---
+
+Today, we'll learn how the seemingly subtle [useId](https://github.com/reactwg/react-18/discussions/111) hook coming to React 18 can significantly help screen readers and ensure proper accessibility for your applications. A combo box is one of those components you hope you never have to make and instead wish the platform offered a solution for. By the end of this article, we'll have a combo box component to help users autocomplete a list of results. Let's get started!
+
+First, we'll reference the [wai-aria examples for combo box](https://www.w3.org/TR/wai-aria-practices-1.1/examples/combobox/aria1.1pattern/listbox-combo.html#ex_label). To keep things simple, we'll duplicate the first example in React. We'll start by creating a custom `ComboBox` component and render an input with the attributes mentioned in the [spec](https://www.w3.org/TR/wai-aria-practices-1.1/#combobox). A combo box requires proper context, which today will be showing a list of results that users can manually choose to autocomplete their favorite fruit.
+
+```jsx
+function ComboBox() {
+  return <input aria-autocomplete="list" />
+}
+```
+
+We then add our list where we'll render results using the `children` prop, which offers a better experience for user's to compose options similar to how the native `select` element works:
+
+```jsx
+function ComboBox({ children, value }) {
+  return (
+    <>
+      <input aria-autocomplete="list" value={value} />
+      <ul role="listbox">{children}</ul>
+    </>
+  )
+}
+```
+
+```jsx
+import { useId } from 'react'
+
+function ComboBox({ children, value }) {
+  const id = useId()
+  return (
+    <>
+      <input aria-autocomplete="list" aria-controls={id} value={value} />
+      <ul role="listbox" id={id}>
+        {children}
+      </ul>
+    </>
+  )
+}
+```
+
+Next, we need to implement a `Result` component library users can provide for the results. The spec requires using a unique identifier for `aria-activedescendant`. We can again utilize `useId` to generate an id for each list item we can target.
+
+```jsx
+import { useId } from 'react'
+
+function Result({ value }) {
+  const id = useId()
+  return (
+    <li id={id} role="option">
+      {value}
+    </li>
+  )
+}
+```
