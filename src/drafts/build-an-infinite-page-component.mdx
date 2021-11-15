@@ -1,0 +1,54 @@
+---
+title: Build an Infinite Page Component
+date: 2021-11-14
+summary: Page components are great for navigating content progressively. In this post, we'll take things a step further and explore how to implement an infinite page view component in React.
+tags:
+  - javascript
+  - react
+---
+
+In a recent project, I wanted to display an extensive list of items in an infinite row to keep things compact and easy to navigate in either direction. I've previously handled infinite paging in [react-view-pager](https://github.com/souporserious/react-view-pager) but wanted to build a new implementation in [framer-motion](https://www.framer.com/motion/) since I could greatly simplify things. There are a few tricky pieces to this component, so let's get started!
+
+Follow along with the Codesandbox demo here:
+
+[![Build an Infinite Page Component](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/build-an-infinite-page-component-33evh)
+
+## Start with the API
+
+First, we'll start by stubbing out the initial API for our `Page` component. Doing this helps to formulate what the implementation will look like:
+
+```jsx
+import randomGradient from 'random-gradient'
+import { Page, View } from './Page'
+
+function App() {
+  return (
+    <Page>
+      {[0, 1, 2, 3, 4, 5].map((index) => (
+        <View
+          key={index}
+          width={400}
+          height={400}
+          color={randomGradient(index)}
+        />
+      ))}
+    </Page>
+  )
+}
+```
+
+## Initial implementation
+
+We'll start by implementing the parent `Page` component. We need a track that moves along the `x` axis:
+
+```jsx
+import { motion } from 'framer-motion'
+
+function Page() {
+  return (
+    <motion.div>
+      <motion.div>{children}</motion.div>
+    </motion.div>
+  )
+}
+```
