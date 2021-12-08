@@ -1,0 +1,354 @@
+---
+title: Build Your Own Code Playground
+date: 2021-12-07
+summary: Whether you use Codesandbox, Codepen, or another playground for testing code, you may have wondered how they work under the hood. In this post, we'll build a simplified code playground to test React code.
+tags:
+  - javascript
+  - react
+---
+
+It wasn't until Codepen came on the scene that I really started to utilize the power of online code playgrounds. I'd previously used JSFiddle, but the excellent collection of projects in Codepen caught my attention, and it started to change the way I code. Fast forward to today, I rely primarily on Codesandbox for the ease of mimicking the production code I'm used to and being able to prototype ideas quickly.
+
+## What We'll Build
+
+Curiously, I've always wondered how these products worked and recently needed to build a React preview environment. Today, we'll build a simple version of these preview environments in NextJS to understand better how they work. Follow along at the [GitHub repo]() to see a working example. Let's get started!
+
+// DEMO HERE
+
+## Getting Started
+
+First, we need to start with an environment for creating examples. To do this, we'll start with a simple NextJS project, but note the same will mostly apply to other frameworks like Gatsby.
+
+First, we'll install the relevant dependencies:
+
+```bash
+yarn add next react react-dom @types/react @types/react-dom typescript
+```
+
+We'll start by creating two pages, one for the preview and one for rendering the editor and the preview. The index page will render the preview in an iframe. This allows us to preview things like window events based on the size of the preview rather than the page we render it in.
+
+```tsx filename=pages/index
+import * as React from 'react'
+
+const initialCodeString = `
+export default function App() {
+  return (
+    <div>
+      <h1>Hello Playground</h1>
+      <h2>Start editing to see some magic happen!</h2>
+    </div>
+  )
+}
+`.trim()
+
+export default function Index() {
+  const [code, setCode] = React.useState(initialCode)
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridAutoFlow: 'column',
+        gridAutoColumns: '1fr',
+        minHeight: '100vh',
+      }}
+    >
+      <textarea
+        spellCheck="false"
+        value={code}
+        onChange={(event) => setCode(event.target.value)}
+      />
+      <Preview />
+    </div>
+  )
+}
+
+function Preview() {
+  return <iframe src="/preview" />
+}
+```
+
+For now we'll leave the preview page empty and fill it in as we go along.
+
+```tsx filename=pages/preview
+export default function Preview() {
+  return null
+}
+```
+
+## Getting Code
+
+Now that we have a stub for our preview, we can start with how to access the code from the editor. To start, we'll allow our preview page to accept a compressed string of code through a `code` query parameter that we can access using [next/router](https://nextjs.org/docs/api-reference/next/router#router-object):
+
+```tsx filename=pages/preview
+import React, { useEffect, useState } from 'react'
+import { decode } from 'base64-url'
+import * as FramerMotion from 'framer-motion'
+import { useRouter } from 'next/router'
+
+export default function Preview() {
+  const [code, setCode] = useState('')
+  const [preview, setPreview] = useState(null)
+  const router = useRouter()
+
+  /** Decode "code" query parameter */
+  useEffect(() => {
+    if (router.query.code) {
+      setCode(decode(router.query.code as string))
+    }
+  }, [router.query.code])
+
+  return preview
+}
+```
+
+We do this by using the [base64-url](https://www.npmjs.com/package/base64-url) library which will decode the query param so we can access the code every time the query changes. Shoutout to [Seek's Playroom](https://github.com/seek-oss/playroom) for the inspiration for this approach!
+
+Now back in our index page we can hook up our `Preview` component:
+
+```tsx filename=pages/index
+import { encode } from 'base64-url'
+
+function Preview({ code }) {
+  return <iframe src={`/preview?code=${encode(code)}`} />
+}
+```
+
+This encodes the string of code and passes it to the preview page as a query parameter.
+
+## Executing Code
+
+Now that we have a code string, we need to execute it and get the result. Since we want to be able to write imports and exports and other modern JavaScript, we need to compile our code at runtime. This is similar to what we would need in a build step for our library. We'll use [SWC](https://babeljs.io/) to accomplish this, which is a performant compiler we can use to transpile our code for the browser. We'll use the official [playground](https://github.com/swc-project/swc-playground) as inspiration where most of the following code is copied from.
+
+### Load SWC
+
+First, we need to load SWC from a CDN like JSDelivr or UNPKG which we'll do in a new `transformCode` utility:
+
+```ts filename=utils/execute-code
+let swc = null
+
+async function transformCode(code: string) {
+  if (swc === null) {
+    const module = await import(
+      /* webpackIgnore: true */
+      `https://cdn.jsdelivr.net/npm/@swc/wasm-web@1.2.118/wasm.js`
+    )
+    await module.default()
+    swc = module
+  }
+}
+```
+
+The `webpackIgnore` comment instructs Webpack to ignore this import so it can be used at runtime. This is necessary because we're using a CDN to load the SWC module rather than adding it in our `package.json` and loading through `node_modules`. This has the benenfit of loading just in time and not needing to be bundled alongside our app which can add a significant size.
+
+### Transform Code
+
+Now that we have a `swc` variable, we can use [transformSync](https://swc.rs/docs/usage/core#transformsync) with a simple configuration that compiles TypeScript and JSX code:
+
+```ts filename=utils/execute-code {5-20}
+async function transformCode(code: string) {
+  if (swc === null) {
+    ...
+  }
+  return swc.transformSync(code, {
+    filename: 'index.tsx',
+    config: {
+      jsc: {
+        parser: {
+          syntax: 'typescript',
+          tsx: true,
+        },
+      },
+      module: {
+        type: 'commonjs',
+      },
+    },
+    swc,
+  }).code
+}
+```
+
+### Execute Code
+
+Now we're ready to execute the code and get the result. We'll add an `executeCode` utility in the same file:
+
+```ts filename=utils/execute-code
+export async function executeCode(
+  codeString: string,
+  dependencies: Record<string, unknown>
+) {
+  const transformedCode = await transformCode(codeString)
+  const exports = {}
+  const module = { exports }
+  const require = (path) => {
+    if (dependencies[path]) {
+      return dependencies[path]
+    }
+    throw Error(`Module not found: ${path}.`)
+  }
+  const result = new Function('exports', 'module', 'require', transformedCode)
+
+  result(exports, module, require, transformedCode)
+
+  return exports.default
+}
+```
+
+There's a bit going on here, so let's break it down:
+
+1. Transform the incoming code string into a string of JavaScript that can be executed.
+2. Create a dynamic function using the [new Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/Function) constructor that will execute the transformed code.
+3. Execute the function and return the result.
+
+We keep track of all of the exports that can later be accessed and require the dependencies that we need. This is a _very_ simplified version of how code is bundled by libraries like Webpack or ESBuild.
+
+Finally, we're ready to use this new utility to execute the code and get the result in our preview page:
+
+```tsx filename=pages/preview {1,5,16-33,35-40}
+import { executeCode } from '../utils/execute-code'
+
+export default function Preview() {
+  const [code, setCode] = useState('')
+  const [error, setError] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const router = useRouter()
+
+  /** Decode "code" query parameter */
+  useEffect(() => {
+    if (router.query.code) {
+      setCode(decode(router.query.code as string))
+    }
+  }, [router.query.code])
+
+  /** Execute preview to render */
+  React.useEffect(() => {
+    if (code === null) return
+
+    setError(null)
+    setLoading(true)
+
+    executeCode(code, {})
+      .then((Preview) => {
+        setPreview(<Preview />)
+      })
+      .catch((error) => {
+        setError(error.toString())
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [code])
+
+  return (
+    <>
+      {preview}
+      {error}
+    </>
+  )
+}
+```
+
+If everything went well, we should now have a preview of our code. And if there was an error, we'll show the error message.
+
+We aren't loading any dependencies here, but we can add whatever library we want. For example, we could add `framer-motion` and then have access to use that library in our code string:
+
+```ts
+import * as ReactDOM from 'react-dom'
+import * as FramerMotion from 'framer-motion'
+import { executeCode } from '../utils/execute-code'
+
+const codeString = `
+import { motion } from 'framer-motion'
+
+export default function App() {
+  return (
+    <motion.div animate={{ rotate: 360 }} />
+  )
+}
+`
+
+executeCode(codeString, { 'framer-motion': FramerMotion }).then((App) => {
+  ReactDOM.render(<App />, document.getElementById('root'))
+})
+```
+
+Also, notice that previously when we created our `executeCode` utility we got the result from `exports.default` after calling the function. That's what `App` above is which will be compiled further to `React.createElement`. If we wanted to support multiple exports we could do that here as well, although sticking to the default export works nice for simple examples.
+
+## Better Performance
+
+You should now be able to see the preview of your code in the browser when changing code in the `textarea`. However, it's not really that great. Every keystroke we're reloadoing the iframe which causes things to feel sluggish. While this is nice for our initial rendering of the preview, it's not great for performance when continually updating.
+
+### Message Passing
+
+To work around this we can utilize a cool feature of browsers called [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage). This allows us to send messages from one window to another. We can use this to send the code to the iframe and have it execute it much faster than updating the query.
+
+This takes a little bit of reworking, but we can easily add this feature to our preview. We can modify the preview page to listen for messages from the iframe and then update the preview:
+
+```tsx filename=pages/preview
+function Preview() {
+  ...
+   useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (
+        window.location.origin === event.origin
+      ) {
+        setCode(decode(event.data.code));
+      }
+    }
+
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [])
+  ...
+}
+```
+
+For security purposes, you should further sanitize the incoming data and add some sort of identifer to make sure you're dealing with code you trust. Now, similarly as before, we'll add a `useEffect` hook in our `index` page to send the code to the iframe:
+
+```tsx filename=pages/index
+import { useEffect, useRef } from 'react'
+import { encode } from 'base64-url'
+
+function Preview({ code }) {
+  const frameRef = useRef<HTMLIFrameElement>(null)
+  const frameSource = useRef(null)
+
+  /**
+   * Only set the source of the iframe on initial mount since we use message
+   * passing below for subsequent updates.
+   */
+  if (frameSource.current === null) {
+    frameSource.current = `/preview?code=${encode(code)}`
+  }
+
+  useEffect(() => {
+    frameRef.current.contentWindow.postMessage({
+      code: encode(code),
+    })
+  }, [code])
+
+  return <iframe ref={frameRef} src={frameSource.current} />
+}
+```
+
+Now we can send the code directly to the iframe and have it execute much faster than updating the query.
+
+## Shareable Links
+
+As a bonus, since we started with query params we can easily add shareable links for our code. This is a great way to share code with others and load the iframe with the exact code you want.
+
+I'll leave this up to you to implement, but as a hint you can use [modern features](https://www.christopherbiscardi.com/a-modern-copy-button) to generate and copy the link to your clipboard 😁
+
+## Conclusion
+
+Compared to full-featured bundlers, this was a more simple look at creating a preview environment that renders any arbitrary React code. Depending on your needs, something like [Sandpack](https://sandpack.codesandbox.io/) or [Javascript Playgrounds](https://github.com/dabbott/javascript-playgrounds) is probably easier to get going. Still, now you hopefully understand how to customize these libraries or create your own.
+
+## Resources
+
+Huge thank you to the resources throughout this post as well as the resources below that helped me understand the process behind bundling and executing code in the browser:
+
+[Codetree](https://blog.devgenius.io/codetree-or-why-i-create-a-new-codepen-5596bd52f96a)
+
+[Build your own interactive JavaScript playground](https://krasimirtsonev.com/blog/article/build-your-own-interactive-javascript-playground)
