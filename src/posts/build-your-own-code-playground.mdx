@@ -2,6 +2,7 @@
 title: Build Your Own Code Playground
 date: 2021-12-07
 summary: Whether you use Codesandbox, Codepen, or another playground for testing code, you may have wondered how they work under the hood. In this post, we'll build a simplified code playground to test React code.
+image: ../images/build-your-own-code-playground.png
 tags:
   - javascript
   - react
@@ -13,11 +14,11 @@ It wasn't until Codepen came on the scene that I really started to utilize the p
 
 ## What We'll Build
 
-Curiously, I've always wondered how these products worked and recently needed to build a React preview environment. Today, we'll create a simple version of these preview environments in NextJS to understand better how they work. Follow along at the [GitHub repo]() to see a working example. Let's get started!
+Curiously, I've always wondered how these products worked and recently needed to build a React preview environment. Today, we'll create a simple version of these preview environments in NextJS to understand better how they work. Follow along at the [GitHub repo](https://github.com/souporserious/build-your-own-code-playground) to see a working example. Let's get started!
 
 <iframe
   src="https://elated-swirles-561d74.netlify.app/"
-  style={{ width: '100%', height: 300, border: 0, background: 'white' }}
+  style={{ width: '100%', height: 300, border: 0 }}
 />
 
 ## Getting Started
@@ -55,8 +56,7 @@ export default function Index() {
     <div
       style={{
         display: 'grid',
-        gridAutoFlow: 'column',
-        gridAutoColumns: '1fr',
+        gridTemplateColumns: '1fr 1fr',
         minHeight: '100vh',
       }}
     >
@@ -311,13 +311,17 @@ We can easily add this feature by modifying the preview page to listen for messa
 function Preview() {
   ...
 
-   useEffect(() => {
+   React.useEffect(() => {
     function handleMessage(event: MessageEvent) {
+       function handleMessage(event: MessageEvent) {
       if (
-        window.location.origin === event.origin
+        window.location.origin === event.origin &&
+        event.data.type === 'preview'
       ) {
-        setCode(decode(event.data.code));
+        setCode(decode(event.data.code))
       }
+    }
+
     }
 
     window.addEventListener('message', handleMessage);
@@ -334,12 +338,9 @@ function Preview() {
 For security purposes, you should further sanitize the incoming data and add an identifier to make sure you're dealing with code you trust. Now, similarly as before, we'll add a `useEffect` hook in our `index` page to send the code to the iframe:
 
 ```tsx filename=pages/index
-import { useEffect, useRef } from 'react'
-import { encode } from 'base64-url'
-
 function Preview({ code }) {
-  const frameRef = useRef<HTMLIFrameElement>(null)
-  const frameSource = useRef(null)
+  const frameRef = React.useRef<HTMLIFrameElement>(null)
+  const frameSource = React.useRef(null)
 
   /**
    * Only set the source of the iframe on the initial mount since we use message
@@ -349,9 +350,10 @@ function Preview({ code }) {
     frameSource.current = `/preview?code=${encode(code)}`
   }
 
-  useEffect(() => {
+  React.useEffect(() => {
     frameRef.current.contentWindow.postMessage({
       code: encode(code),
+      type: 'preview',
     })
   }, [code])
 
