@@ -8,8 +8,6 @@ tags:
   - react
 ---
 
-Whether you use Codesandbox, Codepen, or another playground for testing code, you may have wondered how they work under the hood. In this post, we'll build a simplified code playground to test React code.
-
 It wasn't until Codepen came on the scene that I really started to utilize the power of online code playgrounds. I'd previously used JSFiddle, but the excellent collection of projects in Codepen caught my attention, and it started to change the way I code. Fast forward to today, I rely primarily on Codesandbox for the ease of mimicking the production code I'm used to and being able to prototype ideas quickly.
 
 ## What We'll Build
@@ -136,7 +134,7 @@ Now that we have a code string, we need to execute it and get the result. We mus
 
 ### Load SWC
 
-First, we need to load the SWC web package, which we'll dynamically in a new `transformCode` utility. This way the library will load after the initial page load:
+First, we need to load the SWC web package, which we'll dynamically in a new `transformCode` utility. This way, the library will load after the initial page load:
 
 ```bash
 yarn add @swc/wasm-web
@@ -295,7 +293,7 @@ executeCode(codeString, {
 })
 ```
 
-Also, notice that previously when we created our `executeCode` utility, we got the result from `exports.default` after calling the function. Take note `App` is just a standard React component now and will be compiled further to `React.createElement`. If we wanted to support multiple exports, we could do that here, although sticking to the default export works well for simple examples.
+Also, notice that previously when we created our `executeCode` utility, we got the result from `exports.default` after calling the function. Take note `App` is just a standard React component now and will be compiled further to `React.createElement`. We could do that here if we wanted to support multiple exports, although sticking to the default export works well for simple examples.
 
 ## Better Performance
 
@@ -378,4 +376,3 @@ Huge thank you to the resources listed throughout this post and below, which hel
 [Codetree](https://blog.devgenius.io/codetree-or-why-i-create-a-new-codepen-5596bd52f96a)
 
 [Build your own interactive JavaScript playground](https://krasimirtsonev.com/blog/article/build-your-own-interactive-javascript-playground)
-We are importing
