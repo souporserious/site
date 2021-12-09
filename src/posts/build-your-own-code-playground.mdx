@@ -329,7 +329,9 @@ function Preview() {
 }
 ```
 
-For security purposes, you should further sanitize the incoming data and add an identifier to make sure you're dealing with code you trust. Now, similarly as before, we'll add a `useEffect` hook in our `index` page to send the code to the iframe:
+For security purposes, you should further sanitize the incoming data and add an identifier to make sure you're dealing with code you trust. Also, as Ori mentions [here](https://twitter.com/oriSomething/status/1468983459918061569), in a real-world situation you most likely want to run this playground on a subdomain to prevent sharing `localStorage`.
+
+Now, similarly as before, we'll add a `useEffect` hook in our `index` page to send the code to the iframe:
 
 ```tsx filename=pages/index
 function Preview({ code }) {
