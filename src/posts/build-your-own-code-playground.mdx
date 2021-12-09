@@ -156,27 +156,24 @@ export async function transformCode(code: string) {
 
 Now that we have an `swc` variable, we can use [transformSync](https://swc.rs/docs/usage/core#transformsync) with a simple configuration that compiles TypeScript and JSX code:
 
-```ts filename=utils/execute-code {7-21}
+```ts filename=utils/execute-code {7-18}
 export async function transformCode(code: string) {
   if (swc === null) {
     const module = await import('@swc/wasm-web')
     await module.default()
     swc = module
   }
-  return swc.transformSync(code, {
+  return swc.transformSync(codeString, {
     filename: 'index.tsx',
-    config: {
-      jsc: {
-        parser: {
-          syntax: 'typescript',
-          tsx: true,
-        },
-      },
-      module: {
-        type: 'commonjs',
+    jsc: {
+      parser: {
+        syntax: 'typescript',
+        tsx: true,
       },
     },
-    swc,
+    module: {
+      type: 'commonjs',
+    },
   }).code
 }
 ```
