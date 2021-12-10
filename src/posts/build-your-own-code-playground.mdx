@@ -305,9 +305,8 @@ We can easily add this feature by modifying the preview page to listen for messa
 function Preview() {
   ...
 
-   React.useEffect(() => {
+  React.useEffect(() => {
     function handleMessage(event: MessageEvent) {
-       function handleMessage(event: MessageEvent) {
       if (
         window.location.origin === event.origin &&
         event.data.type === 'preview'
@@ -316,13 +315,11 @@ function Preview() {
       }
     }
 
-    }
-
-    window.addEventListener('message', handleMessage);
+    window.addEventListener('message', handleMessage)
 
     return () => {
-      window.removeEventListener('message', handleMessage);
-    };
+      window.removeEventListener('message', handleMessage)
+    }
   }, [])
 
   ...
