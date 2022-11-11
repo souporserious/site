@@ -109,7 +109,7 @@ trackCells
 // minmax(20px, 1fr) minmax(100px, 1fr) 20px minmax(100px, 1fr) minmax(20px, 1fr)
 ```
 
-Since we are creating implicit columns/rows solely for spacing, we need to position the children accordingly. This is a nuanced problem and unforunately forces the children to be aware of the implementation. We'll use React Context to pass this information down:
+Since we are creating implicit columns/rows solely for spacing, we need to position the children accordingly. This is a nuanced problem and unfortunately forces the children to be aware of the implementation. We'll use React Context to pass this information down:
 
 ```jsx
 trackCells.map((cell, index) => (
@@ -169,9 +169,7 @@ function Stack({
       style={{
         display: 'grid',
         gridAutoFlow: axis === 'horizontal' ? 'column' : 'row',
-        [`gridTemplate${
-          isHorizontal ? 'Columns' : 'Rows'
-        }`]: trackCells
+        [`gridTemplate${isHorizontal ? 'Columns' : 'Rows'}`]: trackCells
           .map((cell) =>
             typeof cell.size === 'number' ? `${cell.size}px` : cell.size
           )
